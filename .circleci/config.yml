@@ -10,7 +10,7 @@ workflows:
       - node/test
       - docker/publish:
           deploy: false
-          image: tp-profesional-jg/$CIRCLE_PROJECT_REPONAME
+          image: tp-profesional-jf/$CIRCLE_PROJECT_REPONAME
           requires:
             # Build docker after testing.
             - node/test
@@ -18,3 +18,4 @@ workflows:
           requires:
             # Deploy after publishing.
             - docker/publish
+          context: frontend # for env vars
