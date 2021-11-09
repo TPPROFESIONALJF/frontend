@@ -1,3 +1,6 @@
+[![CircleCI](https://circleci.com/gh/circleci/circleci-docs/tree/teesloane-patch-5.svg?style=svg)](https://app.circleci.com/pipelines/github/TPPROFESIONALJF/frontend/?branch=main)
+[![Heroku](https://img.shields.io/badge/heroku-master-success.svg?l?style=flat&logo=heroku&logoColor=white&labelColor=494998)](https://tp-profesional-jf-frontend.herokuapp.com/)
+
 # Getting Started with Create React App
 
 
