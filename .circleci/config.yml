@@ -30,3 +30,6 @@ workflows:
           requires:
             - node/test
           context: frontend # for env vars
+          filters:
+            branches:
+              only: main
