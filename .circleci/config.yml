@@ -1,0 +1,27 @@
+orbs:
+  node: circleci/node@4.7.0
+  heroku: circleci/heroku@1.2.6
+  docker: circleci/docker@2.0.1
+
+version: 2.1
+
+workflows:
+  build-docker-image-only:
+    jobs:
+      - docker/publish:
+          deploy: false
+          image: $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME
+  test:
+    jobs:
+      - node/test
+  heroku_deploy:
+     jobs:
+       - test
+       - build-docker-image-only
+       - heroku/deploy-via-git:
+           requires:
+             - test
+             - build-docker-image-only # only run deploy-via-git job if the build job has completed
+           filters:
+             branches:
+               only: main # only run deploy-via-git job on main branch
