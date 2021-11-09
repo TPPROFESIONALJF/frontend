@@ -11,6 +11,9 @@ jobs:
     steps:
       - setup_remote_docker:
           version: 19.03.13
+      # Build the docker image
+      - checkout
+      - run: docker build .
       # deploy
       - heroku/install
       - run: heroku container:login
@@ -23,13 +26,7 @@ workflows:
   heroku_deploy:
     jobs:
       - node/test
-      - docker/publish:
-          deploy: false
-          image: tp-profesional-jf/$CIRCLE_PROJECT_REPONAME
-          requires:
-            # Build docker after testing.
-            - node/test
       - deploy:
           requires:
-            - docker/publish
+            - node/test
           context: frontend # for env vars
