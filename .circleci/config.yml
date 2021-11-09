@@ -5,12 +5,19 @@ orbs:
   docker: circleci/docker@2.0.1
 
 jobs:
-  setup_docker:
+  deploy:
     docker:
       - image: cimg/base:2021.10
     steps:
       - setup_remote_docker:
           version: 19.03.13
+      # deploy
+      - heroku/install
+      - run: heroku container:login
+      - heroku/push-docker-image:
+          process-types: web
+      - heroku/release-docker-image:
+          process-types: web
 
 workflows:
   heroku_deploy:
@@ -22,11 +29,7 @@ workflows:
           requires:
             # Build docker after testing.
             - node/test
-      - setup_docker:
+      - deploy:
           requires:
-            # Deploy after publishing.
             - docker/publish
-      - heroku/push-docker-image:
-          requires:
-            - setup_docker
           context: frontend # for env vars
