@@ -4,18 +4,6 @@ orbs:
   heroku: circleci/heroku@1.2.6
   docker: circleci/docker@2.0.1
 
-jobs:
-  # Build the docker image and deploy it to Heroku.
-  build_and_deploy:
-    docker:
-      - image: cimg/base:2021.07
-    steps:
-      # Deploy to Heroku
-      - heroku/push-docker-image:
-          process-types: web
-      - heroku/release-docker-image:
-          process-types: web
-
 workflows:
   heroku_deploy:
     jobs:
@@ -26,7 +14,7 @@ workflows:
           requires:
             # Build docker after testing.
             - node/test
-      - build_and_deploy:
+      - heroku/push-docker-image:
           requires:
             # Deploy after publishing.
             - docker/publish
