@@ -1,3 +1,9 @@
+# How to run
+
+Simply run:
+
+### `docker-compose up -d --build`
+
 # Getting Started with Create React App
 
 
