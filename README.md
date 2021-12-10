@@ -4,6 +4,9 @@ Simply run:
 
 ### `docker-compose up -d --build`
 
+If you get an error with docker, please try
+### `rm ~/.docker/config.json`
+
 # Getting Started with Create React App
 
 
