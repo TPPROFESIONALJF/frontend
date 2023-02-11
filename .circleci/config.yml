@@ -16,7 +16,7 @@ jobs:
       # deploy
       - run:
           name: Deploy Main to Firebase
-          command: ./node_modules/.bin/firebase deploy --token=$FIREBASE_DEPLOY_TOKEN
+          command: firebase deploy --token=$FIREBASE_DEPLOY_TOKEN --non-interactive 
 
 workflows:
   firebase_deploy:
