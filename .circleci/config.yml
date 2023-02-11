@@ -1,7 +1,6 @@
 version: 2.1
 orbs:
   node: circleci/node@4.7.0
-  heroku: circleci/heroku@1.2.6
   docker: circleci/docker@2.0.1
 
 jobs:
@@ -15,12 +14,13 @@ jobs:
       - checkout
       - run: docker build .
       # deploy
+      - run: npm install --save-dev firebase-tools
       - run:
           name: Deploy Main to Firebase
           command: ./node_modules/.bin/firebase deploy --token=$FIREBASE_DEPLOY_TOKEN
 
 workflows:
-  heroku_deploy:
+  firebase_deploy:
     jobs:
       - node/test
       - deploy:
