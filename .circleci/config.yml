@@ -14,7 +14,6 @@ jobs:
       - checkout
       - run: docker build .
       # deploy
-      - run: npm install --save-dev firebase-tools
       - run:
           name: Deploy Main to Firebase
           command: ./node_modules/.bin/firebase deploy --token=$FIREBASE_DEPLOY_TOKEN
