@@ -14,7 +14,8 @@ jobs:
       - checkout
       - run: docker build .
       # deploy
-      - run: npm install --prefix=$HOME/.local --global firebase-tools
+      - run: npm install firebase-tools
+      - run: alias firebase="`npm config get prefix`/bin/firebase"
       - run:
           name: Deploy Master to Firebase
           command: firebase deploy --token=$FIREBASE_DEPLOY_TOKEN 
