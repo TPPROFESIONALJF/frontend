@@ -14,11 +14,10 @@ jobs:
       - checkout
       - run: docker build .
       # deploy
-      - run: npm install firebase-tools
-      - run:  ls node_modules/.bin
+      - run: npm install --save-dev firebase-tools
       - run:
           name: Deploy Master to Firebase
-          command: firebase deploy --token=$FIREBASE_DEPLOY_TOKEN 
+          command: node_modules/.bin/firebase deploy --token=$FIREBASE_DEPLOY_TOKEN 
 
 workflows:
   firebase_deploy:
