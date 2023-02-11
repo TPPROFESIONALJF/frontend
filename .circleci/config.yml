@@ -15,12 +15,9 @@ jobs:
       - checkout
       - run: docker build .
       # deploy
-      - heroku/install
-      - run: heroku container:login
-      - heroku/push-docker-image:
-          process-types: web
-      - heroku/release-docker-image:
-          process-types: web
+      - run:
+          name: Deploy Main to Firebase
+          command: ./node_modules/.bin/firebase deploy --token=$FIREBASE_DEPLOY_TOKEN
 
 workflows:
   heroku_deploy:
