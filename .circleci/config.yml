@@ -6,7 +6,7 @@ orbs:
 jobs:
   deploy:
     docker:
-      - image: circleci/node:16.4.0
+      - image: cimg/node:19.6.0
     steps:
       - setup_remote_docker:
           version: 19.03.13
