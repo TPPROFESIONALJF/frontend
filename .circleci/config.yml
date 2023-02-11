@@ -5,7 +5,7 @@ orbs:
 
 jobs:
   deploy:
-    working_directory: .
+    working_directory: ~/tpprofesionaljf
     docker:
       - image: cimg/node:19.6.0
     steps:
