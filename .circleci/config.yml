@@ -5,6 +5,7 @@ orbs:
 
 jobs:
   deploy:
+    working_directory: .
     docker:
       - image: cimg/node:19.6.0
     steps:
@@ -15,7 +16,6 @@ jobs:
       - run: docker build .
       # deploy
       - run: npm install --save-dev firebase-tools
-      - run: alias firebase=
       - run:
           name: Deploy Master to Firebase
           command: ./node_modules/.bin/firebase deploy --token=$FIREBASE_DEPLOY_TOKEN 
