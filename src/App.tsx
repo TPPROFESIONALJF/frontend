@@ -5,11 +5,13 @@ import { ethers } from "ethers";
 // We import the contract's artifacts and address here, as we are going to be
 // using them with ethers
 import GreeterArtifact from "./contracts/Greeter.json";
+import WACCArtifact from "./contracts/WACCCalculator.json";
 import ContractAddress from "./contracts/ContractAddress.json";
 
 import React from 'react';
 import { messagePrefix } from '@ethersproject/hash';
 let contractAddress = ContractAddress.greeterAddress;
+let waccContractAddress = ContractAddress.waccCalculatorAddress;
 declare let window: any;
 
 interface AppProps {}
@@ -25,6 +27,7 @@ class App extends React.Component<AppProps, AppState> {
   }
 
   async updateGreetingState() {
+    console.log("updating greeting!");
     let greeting = _contract.greet();
     await greeting.then((result: string) => 
       this.setState({
@@ -41,10 +44,24 @@ class App extends React.Component<AppProps, AppState> {
   }
 
   async cambiarSaludo() {
-    let setGreeting = _contract.setGreeting("Nuevo greeting22");
-    await setGreeting.then(async () => {
-      await this.updateGreetingState();
-    });
+    (await _contract.setGreeting("Nuevo greeting22332"))
+      .wait()
+      .then(async () => {
+        await this.updateGreetingState();
+      }
+    );
+  }
+
+  async pruebaDecimal() {
+    let big = BigInt(99999 * 1e18);
+    let result = await _waccContract.calculate(big);
+    console.log(result / 1e18);
+    let result2 = await _waccContract.returnFloatValue();
+    console.log(result2);
+    /*let calculate = _waccContract.calculate(497);
+    await calculate.then(async (result: string) => {
+      console.log(result);
+    });*/
   }
 
   render(){
@@ -65,6 +82,7 @@ class App extends React.Component<AppProps, AppState> {
             <div>{this.state.message}</div>
           </a>
           <button onClick={() => this.cambiarSaludo()}>Cambiar saludo</button>
+          <button onClick={() => this.pruebaDecimal()}>Ejecutar prueba</button>
         </header>
       </div>
     );
@@ -74,6 +92,7 @@ class App extends React.Component<AppProps, AppState> {
 export default App;
 
 let _contract: ethers.Contract;
+let _waccContract: ethers.Contract;
 //_intializeEthers();
 var provider;
 async function _intializeEthers() {
@@ -85,6 +104,11 @@ async function _intializeEthers() {
   _contract = new ethers.Contract(
     contractAddress,
     GreeterArtifact.abi,
+    provider.getSigner(0)
+  );
+  _waccContract = new ethers.Contract(
+    waccContractAddress,
+    WACCArtifact.abi,
     provider.getSigner(0)
   );
 }
