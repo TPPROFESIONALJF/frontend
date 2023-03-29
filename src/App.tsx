@@ -1,17 +1,18 @@
 import logo from './logo.svg';
 import './App.css';
 import { ethers } from "ethers";
+import { intoUD, fromUD } from "./helpers"
 
 // We import the contract's artifacts and address here, as we are going to be
 // using them with ethers
 import GreeterArtifact from "./contracts/Greeter.json";
-import WACCArtifact from "./contracts/WACCCalculator.json";
+import DCFCalculatorArtifact from "./contracts/DCFCalculator.json";
 import ContractAddress from "./contracts/ContractAddress.json";
 
 import React from 'react';
-import { messagePrefix } from '@ethersproject/hash';
+
 let contractAddress = ContractAddress.greeterAddress;
-let waccContractAddress = ContractAddress.waccCalculatorAddress;
+let dcfCalculatorContractAddress = ContractAddress.dcfCalculatorAddress;
 declare let window: any;
 
 interface AppProps {}
@@ -27,7 +28,6 @@ class App extends React.Component<AppProps, AppState> {
   }
 
   async updateGreetingState() {
-    console.log("updating greeting!");
     let greeting = _contract.greet();
     await greeting.then((result: string) => 
       this.setState({
@@ -44,6 +44,7 @@ class App extends React.Component<AppProps, AppState> {
   }
 
   async cambiarSaludo() {
+    console.log("updating greeting!");
     (await _contract.setGreeting("Nuevo greeting22332"))
       .wait()
       .then(async () => {
@@ -53,15 +54,9 @@ class App extends React.Component<AppProps, AppState> {
   }
 
   async pruebaDecimal() {
-    let big = BigInt(99999 * 1e18);
-    let result = await _waccContract.calculate(big);
-    console.log(result / 1e18);
-    let result2 = await _waccContract.returnFloatValue();
-    console.log(result2);
-    /*let calculate = _waccContract.calculate(497);
-    await calculate.then(async (result: string) => {
-      console.log(result);
-    });*/
+    let cashFlows = [435, 349, 100, 394, 94];
+    let result = await _dcfCalculatorContract.calculate(cashFlows);
+    console.log(fromUD(result));
   }
 
   render(){
@@ -92,7 +87,7 @@ class App extends React.Component<AppProps, AppState> {
 export default App;
 
 let _contract: ethers.Contract;
-let _waccContract: ethers.Contract;
+let _dcfCalculatorContract: ethers.Contract;
 //_intializeEthers();
 var provider;
 async function _intializeEthers() {
@@ -106,9 +101,9 @@ async function _intializeEthers() {
     GreeterArtifact.abi,
     provider.getSigner(0)
   );
-  _waccContract = new ethers.Contract(
-    waccContractAddress,
-    WACCArtifact.abi,
+  _dcfCalculatorContract = new ethers.Contract(
+    dcfCalculatorContractAddress,
+    DCFCalculatorArtifact.abi,
     provider.getSigner(0)
   );
 }
