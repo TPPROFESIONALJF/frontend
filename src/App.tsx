@@ -54,9 +54,10 @@ class App extends React.Component<AppProps, AppState> {
   }
 
   async pruebaDecimal() {
-    let cashFlows = [435, 349, 100, 394, 94];
+    let cashFlows = [402, 416, 449, 485, 524];
     let result = await _dcfCalculatorContract.calculate(cashFlows);
     console.log(fromUD(result));
+    console.log(result);
   }
 
   render(){
@@ -88,7 +89,6 @@ export default App;
 
 let _contract: ethers.Contract;
 let _dcfCalculatorContract: ethers.Contract;
-//_intializeEthers();
 var provider;
 async function _intializeEthers() {
   // We first initialize ethers by creating a provider using window.ethereum
