@@ -54,8 +54,10 @@ class App extends React.Component<AppProps, AppState> {
   }
 
   async pruebaDecimal() {
+    let growthRate = intoUD(0.03);
+    let survivalRate = intoUD(1);
     let cashFlows = [402, 416, 449, 485, 524];
-    let result = await _dcfCalculatorContract.calculate(cashFlows);
+    let result = await _dcfCalculatorContract.calculate(cashFlows, survivalRate, growthRate);
     console.log(fromUD(result));
     console.log(result);
   }
