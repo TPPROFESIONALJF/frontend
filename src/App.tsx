@@ -7,47 +7,65 @@ import { ethers } from "ethers";
 import GreeterArtifact from "./contracts/Greeter.json";
 import ContractAddress from "./contracts/ContractAddress.json";
 
-import React from 'react';
-import { messagePrefix } from '@ethersproject/hash';
+import { useState, useEffect } from 'react';
 let contractAddress = ContractAddress.greeterAddress;
 declare let window: any;
 
-interface AppProps {}
-interface AppState {
-  message: string | null
-}
-class App extends React.Component<AppProps, AppState> {
-  constructor(props: AppProps) {
-    super(props);
-    this.state = {
-      message: null
-    };
-  }
+export default function App() {
+  const [message, setMessage] = useState("World");
+  const [greeterContract, setGreeterContract] = useState<ethers.Contract | null>(null);
+  const [provider, setProvider] = useState<ethers.providers.Provider>(new ethers.providers.Web3Provider(window.ethereum));
+  const [signer, setSigner] = useState<ethers.Signer | null>(null);
 
-  async updateGreetingState() {
-    let greeting = _contract.greet();
+  async function updateGreetingState() {
+    let greeting = greeterContract?.greet();
     await greeting.then((result: string) => 
-      this.setState({
-        message: result
-      })
+      setMessage(result)
     ).catch(function(reason: any) {
       console.log(reason);
    });
   }
 
-  async componentDidMount() {
-    await _intializeEthers();
-    this.updateGreetingState();
+  useEffect(() => {
+    const initialize = async () => {
+      await _intializeEthers();
+      updateGreetingState();
+    };
+
+    initialize().catch(console.error);;
+  }, [provider]);
+
+  useEffect(() => {
+    // When signer changes we must reinstantiate our contracts with the new signer 
+    // so they get executed with the new one
+    if (signer != null) {
+      setGreeterContract(new ethers.Contract(
+        contractAddress,
+        GreeterArtifact.abi,
+        signer
+      ));
+    }
+  }, [signer]);
+
+  async function _intializeEthers() {
+    // We first initialize ethers by creating a provider using window.ethereum
+    await window.ethereum.enable();
+    provider?.on("accountsChanged", accounts => {
+      setSigner(accounts[0]);
+    });
+    // When, we initialize the contract using that provider and the greeter's
+    // artifact. You can do this same thing with your contracts.
+    
   }
 
-  async cambiarSaludo() {
-    let setGreeting = _contract.setGreeting("Nuevo greeting22");
-    await setGreeting.then(async () => {
-      await this.updateGreetingState();
+  async function cambiarSaludo() {
+    let setGreeting = greeterContract?.setGreeting("Nuevo greeting22");
+    await setGreeting?.then(async () => {
+      await updateGreetingState();
     });
   }
 
-  render(){
+  function render(){
     return (
       <div className="App">
         <header className="App-header">
@@ -62,29 +80,11 @@ class App extends React.Component<AppProps, AppState> {
             rel="noopener noreferrer"
           >
             Learn React! Changes :D
-            <div>{this.state.message}</div>
+            <div>{ message }</div>
           </a>
-          <button onClick={() => this.cambiarSaludo()}>Cambiar saludo</button>
+          <button onClick={() => cambiarSaludo()}>Cambiar saludo</button>
         </header>
       </div>
     );
   }
-}
-
-export default App;
-
-let _contract: ethers.Contract;
-//_intializeEthers();
-var provider;
-async function _intializeEthers() {
-  // We first initialize ethers by creating a provider using window.ethereum
-  provider = new ethers.providers.Web3Provider(window.ethereum);
-  await window.ethereum.enable();
-  // When, we initialize the contract using that provider and the greeter's
-  // artifact. You can do this same thing with your contracts.
-  _contract = new ethers.Contract(
-    contractAddress,
-    GreeterArtifact.abi,
-    provider.getSigner(0)
-  );
 }
