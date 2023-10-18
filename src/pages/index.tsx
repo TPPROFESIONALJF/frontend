@@ -4,42 +4,35 @@ import styles from "@/styles/Home.module.css";
 
 // We import the contract's artifacts and address here, as we are going to be
 // using them with ethers
-import GreeterArtifact from "@/contracts/Greeter.json";
+import { greeterABI } from "@/contracts/Greeter";
 import ContractAddresses from "@/contracts/ContractAddresses.json";
 
-import { JsonRpcSigner, ethers } from "ethers";
-import { useEthersSigner } from "@/utils/ethersUtils";
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useContractRead, usePrepareContractWrite, useContractWrite, useWaitForTransaction } from 'wagmi'
 
 export default function Home() {
-
-  const [name, setName] = useState("");
   const [newName, setNewName] = useState("");
-  const signer = useEthersSigner();
+  
+  const { data: name } = useContractRead({
+    address: ContractAddresses.greeterAddress as `0x${string}`,
+    abi: greeterABI,
+    functionName: 'greet',
+    watch: true
+  });
 
-  const _greeterContract = new ethers.Contract(
-    ContractAddresses.greeterAddress,
-    GreeterArtifact.abi,
-    useEthersSigner()
-  );
-
-  useEffect(() => {
-    if (signer) {
-      updateGreeting()
-    }
-  }, [signer]);
-
-  async function updateGreeting() {
-    let greeting = await _greeterContract.greet();
-    setName(greeting);
-  }
+  const { config } = usePrepareContractWrite({
+    address: ContractAddresses.greeterAddress as `0x${string}`,
+    abi: greeterABI,
+    functionName: 'setGreeting',
+    args: [newName]
+  });
+  const { data, write: setGreeting } = useContractWrite(config);
+  const { isLoading, isSuccess } = useWaitForTransaction({
+    hash: data?.hash,
+  });
 
   async function handleCambiarSaludo() {
-    console.log("handler");
-    _greeterContract.setGreeting(newName).then(async (tx) => {
-      await tx.wait(); // Can this be replaced by events thrown by the contract?
-      updateGreeting();
-    });
+    setGreeting?.()
   }
 
   return (
@@ -83,33 +76,13 @@ export default function Home() {
             {!name && <div>Cargando...</div>}
             {name && <div>Hola {name}!</div>}
             <input placeholder="Franco" onChange={(e) => setNewName(e.target.value)}></input>
-            <button onClick={(e) => handleCambiarSaludo()}>Cambiar saludo</button>
+            <button disabled={isLoading} onClick={(e) => handleCambiarSaludo()}>{isLoading ? 'Cambiando saludo...' : 'Cambiar saludo'}</button>
             <div className={styles.content}>
               <w3m-button />
             </div>
           </div>
           <div className={styles.footer}>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              height={16}
-              width={16}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z"
-              />
-            </svg>
-            <a
-              href="https://docs.walletconnect.com/web3modal/react/about?utm_source=next-starter-template&utm_medium=github&utm_campaign=next-starter-template"
-              target="_blank"
-            >
               Check out the full documentation here
-            </a>
           </div>
         </div>
       </main>
