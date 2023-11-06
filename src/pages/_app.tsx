@@ -10,10 +10,10 @@ import {
   hardhat,
 } from "wagmi/chains";
 import { CacheProvider, EmotionCache } from "@emotion/react";
-import Head from "next/head";
 import createEmotionCache from "@/utils/createEmotionCache";
 import { CssBaseline, ThemeProvider } from "@mui/material";
 import theme from '@/styles/theme';
+import Navbar from "@/components/Navbar";
 
 const chains = [
   mainnet,
@@ -34,7 +34,15 @@ const metadata = {
 
 const wagmiConfig = defaultWagmiConfig({ chains, projectId, metadata });
 
-createWeb3Modal({ wagmiConfig, projectId, chains });
+createWeb3Modal({ 
+  wagmiConfig, 
+  projectId, 
+  chains, 
+  themeVariables: {
+    '--w3m-font-family': theme.typography.fontFamily,
+    '--w3m-accent': theme.palette.primary.main
+  }
+});
 
 // Client-side cache, shared for the whole session of the user in the browser.
 const clientSideEmotionCache = createEmotionCache();
@@ -54,13 +62,11 @@ export default function App(props: MyAppProps) {
     <>
       {ready ? (
         <CacheProvider value={emotionCache}>
-          <Head>
-            <meta name="viewport" content="width=device-width, initial-scale=1" />
-          </Head>
           <ThemeProvider theme={theme}>
             {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
             <CssBaseline />
             <WagmiConfig config={wagmiConfig}>
+              <Navbar />
               <Component {...pageProps} />
             </WagmiConfig>
           </ThemeProvider>
