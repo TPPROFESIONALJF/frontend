@@ -2,11 +2,9 @@ import Head from "next/head";
 import Image from "next/image";
 import styles from "./Navbar.module.css";
 import { AppBar, Box, Toolbar } from "@mui/material";
-import { useRouter } from 'next/navigation';
 import Link from "next/link";
 
 export default function Navbar() {
-  const router = useRouter();
   return (
     <>
       <Head>
