@@ -6,6 +6,7 @@ interface ProjectProps {
     id: bigint;
     name: string;
     industrie: number;
+    status: number;
   }
 }
 
@@ -16,14 +17,17 @@ export default function ProjectCard({ data }: ProjectProps) {
         <Card
           sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
         >
-          <CardMedia
-            component="div"
-            sx={{
-              // 16:9
-              pt: '56.25%',
-            }}
-            image="https://source.unsplash.com/random?wallpapers"
-          />
+          {(data.status == 0) ?
+            <div>COMING SOON</div>
+            : <CardMedia
+              component="div"
+              sx={{
+                // 16:9
+                pt: '56.25%',
+              }}
+              image="https://source.unsplash.com/random?wallpapers"
+            />
+          }
           <CardContent sx={{ flexGrow: 1 }}>
             <Typography gutterBottom variant="h5" component="h2">
               {data.name}
