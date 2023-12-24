@@ -20,27 +20,31 @@ interface InvestModalProps {
   props: {
     open: boolean;
     handleClose: (() => void);
-    handleInvest: ((value: number) => void);
+    onInvestClick: (() => void);
+    investAmount: number;
+    setInvestAmount: ((value: number) => void);
   }
 }
+
 export default function InvestModal({ props }: InvestModalProps) {
-  const [invest, setInvest] = useState(-1);
-
-
   function onInvest() {
-    alert(invest);
-    if (invest <= 0 || !Number.isInteger(invest)) {
+    if (props.investAmount <= 0 || !Number.isInteger(props.investAmount)) {
       alert("Please set an investment value greater than 0 without decimals");
       return;
     }
-    props.handleInvest(invest);
+    props.onInvestClick();
+  }
+
+  function onClose() {
+    props.setInvestAmount(0);
+    props.handleClose();
   }
 
   return (
     <div>
       <Modal
         open={props?.open}
-        onClose={props?.handleClose}
+        onClose={onClose}
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
       >
@@ -53,7 +57,7 @@ export default function InvestModal({ props }: InvestModalProps) {
               type="number"
               label="Investment"
               variant="outlined"
-              onChange={(e) => setInvest(parseFloat(e.target.value))}
+              onChange={(e) => props.setInvestAmount(parseFloat(e.target.value))}
               InputProps={{
                 inputProps: { min: 0 },
                 endAdornment: <InputAdornment position="end">TOKENS</InputAdornment>,
@@ -64,7 +68,7 @@ export default function InvestModal({ props }: InvestModalProps) {
           </Typography>
           <Stack spacing={1} sx={{ pt: 2 }}>
             <Button onClick={onInvest} size='large' variant="contained" fullWidth>Invest</Button>
-            <Button onClick={props?.handleClose} size='large' variant="text" fullWidth>
+            <Button onClick={onClose} size='large' variant="text" fullWidth>
               Cancel
             </Button>
           </Stack>

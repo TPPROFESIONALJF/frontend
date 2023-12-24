@@ -9,6 +9,7 @@ import { fundingManagerABI } from "@/contracts/FundingManager";
 import ContractAddresses from "@/contracts/ContractAddresses.json";
 import { useRouter } from 'next/navigation';
 import industries from "@/utils/projectsUtils";
+import '@/utils/numberUtils'
 
 const milestoneSpans = [
   {
@@ -42,7 +43,7 @@ export default function ProjectCreate() {
     abi: fundingManagerABI,
     functionName: 'create',
     args: [
-      goal!!,
+      goal?.asTokenSmallestUnit() ?? BigInt(-1),
       name!!,
       industrie!!,
       BigInt(startDate?.unix() ?? dayjs().unix()),

@@ -31,7 +31,6 @@ export default function Projects() {
             direction="row"
             justifyContent="end"
           >
-            <Button variant="contained">Main call to action</Button>
           </Stack>
           <Grid container spacing={4}>
             {data?.map((project) => (
