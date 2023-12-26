@@ -14,6 +14,7 @@ import InvestModal from '@/components/InvestModal';
 import { useEffect, useState } from 'react';
 import { useDebounce } from '@uidotdev/usehooks';
 import '@/utils/numberUtils'
+import { SnackbarProvider, enqueueSnackbar } from 'notistack';
 
 export default function Project() {
   const [investAmount, setInvestAmount] = useState(0);
@@ -96,18 +97,21 @@ export default function Project() {
       const { hash: investHash } = await writeContract(investConfig);
       await waitForTransaction({ hash: investHash });
 
-      //TODO: Show feedback to user
-    } catch (e) {
-      console.log(e);
-      // If something goes wrong we might want to let the user decrease the allowance
-      const { hash: resetAllowanceHash } = await writeContract(resetAllowanceConfig);
-      await waitForTransaction({ hash: resetAllowanceHash });
-
-      //TODO: Show feedback to user
-    }
-     finally {
       setIsInvesting(false);
-     }
+      //TODO: Close modal and show feedback to user
+    } catch (e) {
+      setIsInvesting(false);
+      //TODO: Show feedback to user
+      enqueueSnackbar("Oops! Something went wrong when trying to process your investment: " + e.message, { variant: "error" });
+      console.log(e);
+      try {
+        // If something goes wrong we might want to let the user decrease the allowance
+        const { hash: resetAllowanceHash } = await writeContract(resetAllowanceConfig);
+        await waitForTransaction({ hash: resetAllowanceHash })
+      } catch (e) {
+        enqueueSnackbar("Oops! Something went wrong when trying to revoke allowance: " + e.message, { variant: "error" });
+      }
+    }
   }
 
   return (
@@ -116,6 +120,10 @@ export default function Project() {
         <title>CryptoFundMe</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
+      <SnackbarProvider autoHideDuration={5000} anchorOrigin={{
+        vertical: 'bottom',
+        horizontal: 'center',
+      }} />
       <Container sx={{ pt: 4 }} maxWidth="lg" fixed>
         <InvestModal props={{
           open,
