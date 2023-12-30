@@ -7,7 +7,7 @@ interface ProjectProps {
     id: bigint;
     name: string;
     industrie: number;
-    status: number;
+    stage: number;
   }
 }
 

@@ -22,6 +22,7 @@ interface InvestModalProps {
     onInvestClick: (() => void);
     investAmount: number;
     setInvestAmount: ((value: number) => void);
+    balance: number;
   }
 }
 
@@ -51,8 +52,12 @@ export default function InvestModal({ props }: InvestModalProps) {
           <Typography id="modal-modal-title" variant="h6" component="h2">
             How much tokens you want to invest?
           </Typography>
-          <Typography id="modal-modal-description" sx={{ mt: 2 }}>
+          <Typography variant="body2" textAlign="end">
+            Token balance: {props.balance}
+          </Typography>
+          <Typography id="modal-modal-description">
             <TextField
+              sx={{ mt: 1 }}
               type="number"
               label="Investment"
               variant="outlined"

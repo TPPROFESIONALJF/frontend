@@ -1,13 +1,13 @@
-import { Backdrop, Button, Card, CardContent, CardMedia, CircularProgress, Container, Grid, Stack, Typography } from '@mui/material';
+import { Backdrop, Button, Card, CardContent, CardMedia, CircularProgress, Container, Grid, Stack, Typography, debounce } from '@mui/material';
 import Head from 'next/head';
 import { useRouter } from 'next/router'
-import { useContractRead, usePrepareContractWrite, useContractWrite, useWaitForTransaction } from 'wagmi';
-import { waitForTransaction, writeContract } from '@wagmi/core'
+import { useContractRead, useAccount } from 'wagmi';
+import { waitForTransaction, writeContract, prepareWriteContract } from '@wagmi/core'
 import { fundingManagerABI } from "@/contracts/FundingManager";
 import { dummyDAIABI } from "@/contracts/DummyDAI";
 import ContractAddresses from "@/contracts/ContractAddresses.json";
 import NotFound from './404';
-import { getIndustrieById } from "@/utils/projectsUtils";
+import { getIndustrieById, increaseAllowance, investOnProject, resetAllowance } from "@/utils/projectsUtils";
 import Image from 'next/image';
 import LinearProgressWithLabel from '@/components/LinearProgressWithLabel';
 import InvestModal from '@/components/InvestModal';
@@ -24,6 +24,7 @@ export default function Project() {
   const [isInvesting, setIsInvesting] = useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
+  const { address } = useAccount();
   const router = useRouter();
   const projectIdAsString = router.query.project;
   useEffect(() => {
@@ -41,34 +42,28 @@ export default function Project() {
     watch: true
   });
 
-  const { config: increaseAllowanceConfig } = usePrepareContractWrite({
-    address: ContractAddresses.dummyDAIAddress as `0x${string}`,
-    abi: dummyDAIABI,
-    functionName: 'increaseAllowance',
-    args: [
-      ContractAddresses.fundingManagerAddress as `0x${string}`,
-      BigInt(debouncedInvestAmount.asTokenSmallestUnit())
-    ]
-  });
-
-  const { config: resetAllowanceConfig } = usePrepareContractWrite({
-    address: ContractAddresses.dummyDAIAddress as `0x${string}`,
-    abi: dummyDAIABI,
-    functionName: 'approve',
-    args: [
-      ContractAddresses.fundingManagerAddress as `0x${string}`,
-      BigInt(0)
-    ]
-  });
-
-  const { config: investConfig } = usePrepareContractWrite({
+  const { data: fundedAmount } = useContractRead({
     address: ContractAddresses.fundingManagerAddress as `0x${string}`,
     abi: fundingManagerABI,
-    functionName: 'invest',
-    args: [
-      projectId,
-      BigInt(debouncedInvestAmount.asTokenSmallestUnit())
-    ]
+    functionName: 'getFundedAmount',
+    args: [projectId, address as `0x${string}`],
+    watch: true
+  });
+
+  const { data: investorsNumber } = useContractRead({
+    address: ContractAddresses.fundingManagerAddress as `0x${string}`,
+    abi: fundingManagerABI,
+    functionName: 'getInvestorsNumberByProject',
+    args: [projectId],
+    watch: true
+  });
+
+  const { data: readBalance } = useContractRead({
+    address: ContractAddresses.dummyDAIAddress as `0x${string}`,
+    abi: dummyDAIABI,
+    functionName: 'balanceOf',
+    args: [address as `0x${string}`],
+    watch: true
   });
 
   if (project !== undefined && project.id === BigInt(0)) {
@@ -87,27 +82,28 @@ export default function Project() {
   }
 
   async function invest() {
+    if (readBalance != undefined && readBalance.asTokenStandardUnit() < investAmount) {
+      enqueueSnackbar("Error: The amount you are trying to invest exceedes your balance", { variant: "error" });
+      return;
+    }
     try {
       setIsInvesting(true);
       // First let the user increase the allowance of tokens on our behalf
-      const { hash: increaseAllowanceHash } = await writeContract(increaseAllowanceConfig);
-      await waitForTransaction({ hash: increaseAllowanceHash });
+      await increaseAllowance(debouncedInvestAmount);
 
       // Second ask the user to approve the invest on the project
-      const { hash: investHash } = await writeContract(investConfig);
-      await waitForTransaction({ hash: investHash });
+      await investOnProject(projectId, debouncedInvestAmount);
 
       setIsInvesting(false);
-      //TODO: Close modal and show feedback to user
+      handleClose();
+      enqueueSnackbar("Your funds have been invested successfully", { variant: "success" });
     } catch (e) {
       setIsInvesting(false);
-      //TODO: Show feedback to user
       enqueueSnackbar("Oops! Something went wrong when trying to process your investment: " + e.message, { variant: "error" });
-      console.log(e);
       try {
         // If something goes wrong we might want to let the user decrease the allowance
-        const { hash: resetAllowanceHash } = await writeContract(resetAllowanceConfig);
-        await waitForTransaction({ hash: resetAllowanceHash })
+        await resetAllowance();
+        enqueueSnackbar("Your allowance has been successfully set to 0", { variant: "success" });
       } catch (e) {
         enqueueSnackbar("Oops! Something went wrong when trying to revoke allowance: " + e.message, { variant: "error" });
       }
@@ -130,7 +126,8 @@ export default function Project() {
           handleClose,
           onInvestClick: invest,
           investAmount: investAmount,
-          setInvestAmount: setInvestAmount
+          setInvestAmount: setInvestAmount,
+          balance: readBalance ? Number(readBalance.asTokenStandardUnit()) : 0
         }} />
 
         <Backdrop
@@ -201,7 +198,7 @@ export default function Project() {
                             style={{ height: 'auto', width: '36px' }}
                           />
                           <Typography variant="body1">
-                            ZZ Unique contributors
+                            {(investorsNumber ?? 0).toString()} Unique contributors
                           </Typography>
                         </Stack>
                         <Stack
@@ -221,6 +218,11 @@ export default function Project() {
                             {project.funded.asTokenStandardUnit().toString()}/{project.goal.asTokenStandardUnit().toString()} Tokens funded
                           </Typography>
                         </Stack>
+                        {fundedAmount != undefined && fundedAmount > 0 &&
+                          <Typography variant="body1" width="100%" textAlign="center">
+                            You funded {fundedAmount.asTokenStandardUnit().toString()} tokens
+                          </Typography>
+                        }
                         <LinearProgressWithLabel color="secondary" value={getProjectProgress()}></LinearProgressWithLabel>
                         <Button
                           fullWidth
