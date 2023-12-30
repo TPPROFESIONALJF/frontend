@@ -99,13 +99,17 @@ export default function Project() {
       enqueueSnackbar("Your funds have been invested successfully", { variant: "success" });
     } catch (e) {
       setIsInvesting(false);
-      enqueueSnackbar("Oops! Something went wrong when trying to process your investment: " + e.message, { variant: "error" });
+      if (e instanceof Error) {
+        enqueueSnackbar("Oops! Something went wrong when trying to process your investment: " + e.message, { variant: "error" });
+      }
       try {
         // If something goes wrong we might want to let the user decrease the allowance
         await resetAllowance();
         enqueueSnackbar("Your allowance has been successfully set to 0", { variant: "success" });
-      } catch (e) {
-        enqueueSnackbar("Oops! Something went wrong when trying to revoke allowance: " + e.message, { variant: "error" });
+      } catch (e: unknown) {
+        if (e instanceof Error) {
+          enqueueSnackbar("Oops! Something went wrong when trying to revoke allowance: " + e.message, { variant: "error" });
+        }
       }
     }
   }
