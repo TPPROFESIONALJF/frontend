@@ -4,39 +4,69 @@ import dayjs, { Dayjs } from "dayjs";
 import Head from "next/head";
 import { FormEvent } from "react";
 import { useState } from "react";
-import { usePrepareContractWrite, useContractWrite, useWaitForTransaction } from 'wagmi'
+import { usePrepareContractWrite, useContractWrite, useWaitForTransaction, useContractRead } from 'wagmi'
 import { fundingManagerABI } from "@/contracts/FundingManager";
 import ContractAddresses from "@/contracts/ContractAddresses.json";
 import { useRouter } from 'next/navigation';
 import industries from "@/utils/projectsUtils";
-import '@/utils/numberUtils'
+import '@/utils/numberUtils';
+import { SnackbarProvider, enqueueSnackbar } from 'notistack';
+
+// If we change this, we have to change the smart contract minimum span between milestones
+const durationUnit = "month";
 
 const milestoneSpans = [
   {
     value: '3',
-    label: '3 months',
+    label: `3 ${durationUnit}s`,
   },
   {
     value: '4',
-    label: '4 months',
+    label: `4 ${durationUnit}s`,
   },
   {
     value: '6',
-    label: '6 months',
+    label: `6 ${durationUnit}s`,
   },
   {
     value: '12',
-    label: '12 months',
+    label: `12 ${durationUnit}s`,
   },
 ];
 
+const projectDurations = [
+  {
+    value: '3',
+    label: `3 ${durationUnit}s`,
+  },
+  {
+    value: '6',
+    label: `6 ${durationUnit}s`,
+  },
+  {
+    value: '9',
+    label: `9 ${durationUnit}s`,
+  },
+  {
+    value: '12',
+    label: `12 ${durationUnit}s`,
+  },
+];
+
+
 export default function ProjectCreate() {
   const [startDate, setStartDate] = useState<Dayjs | null>(null);
-  const [endDate, setEndDate] = useState<Dayjs | null>(null);
+  const [duration, setDuration] = useState<number>(3);
   const [name, setName] = useState<string | null>(null);
   const [industrie, setIndustrie] = useState<number | null>(null);
   const [goal, setGoal] = useState<bigint | null>(null);
   const [milestoneSpan, setMilestoneSpan] = useState<number>(3);
+
+  const { data: minGoal } = useContractRead({
+    address: ContractAddresses.fundingManagerAddress as `0x$cd{string}`,
+    abi: fundingManagerABI,
+    functionName: 'MIN_GOAL'
+  });
 
   const { config } = usePrepareContractWrite({
     address: ContractAddresses.fundingManagerAddress as `0x${string}`,
@@ -47,11 +77,11 @@ export default function ProjectCreate() {
       name!!,
       industrie!!,
       BigInt(startDate?.unix() ?? dayjs().unix()),
-      BigInt(endDate?.unix() ?? dayjs().unix()),
-      calculateMilestonesMonths()
+      BigInt(startDate?.add(duration, durationUnit).unix() ?? dayjs().unix()),
+      calculateMilestonesDates()
     ]
   });
-  const { data, write: create } = useContractWrite(config);
+  const { data, write: create, isError, error } = useContractWrite(config);
   const { isLoading, isSuccess } = useWaitForTransaction({
     hash: data?.hash,
   });
@@ -59,32 +89,32 @@ export default function ProjectCreate() {
   if (isSuccess) {
     useRouter().replace("/projects");
   }
+  if (isError) {
+    enqueueSnackbar(`Error: ${error?.cause}`, { variant: "error" });
+  }
 
-  function calculateMilestonesMonths(): number[] {
-    let auxDate = startDate;
-    let milestoneMonths = [];
-    while (auxDate?.isBefore(endDate)) {
-      if (milestoneMonths.indexOf(auxDate.month()) !== -1) {
-        // if i get here it means i already cycled on 1 full year months
-        return milestoneMonths;
-      }
-      milestoneMonths.push(auxDate.month());
-      auxDate = auxDate.add(milestoneSpan, 'month');
+  function calculateMilestonesDates(): bigint[] {
+    let milestoneDate = startDate?.add(milestoneSpan, "month");;
+    let endDate = startDate?.add(duration, "month");
+    let dates: bigint[] = [];
+    while (milestoneDate?.isBefore(endDate)) {
+      dates.push(BigInt(milestoneDate.unix()));
+      milestoneDate = milestoneDate.add(milestoneSpan, "month");
     }
-    return milestoneMonths;
+    return dates;
   }
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    if (milestoneSpan > duration) {
+      enqueueSnackbar("Error: Project duration should be greater than milestones span", { variant: "error" });
+      return;
+    }
+    if (goal != null && goal < minGoal!!.asTokenStandardUnit()) {
+      enqueueSnackbar(`Error: Goal should be at least ${minGoal?.asTokenStandardUnit()} tokens`, { variant: "error" });
+      return;
+    }
     create?.();
-  }
-
-  function shouldDisableEndMonth(date: string): boolean {
-    return (dayjs(date)).isBefore(startDate, 'month');
-  }
-
-  function shouldDisableEndYear(date: string): boolean {
-    return (dayjs(date)).isBefore(startDate, 'year');
   }
 
   return (
@@ -93,6 +123,10 @@ export default function ProjectCreate() {
         <title>CryptoFundMe</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
+      <SnackbarProvider autoHideDuration={5000} anchorOrigin={{
+        vertical: 'bottom',
+        horizontal: 'center',
+      }} />
       <Box className='mainContainer'>
         <Typography
           component="h1"
@@ -165,17 +199,20 @@ export default function ProjectCreate() {
               />
             </Grid>
             <Grid item xs={12} md={6} lg={4}>
-              <DatePicker
-                label="End month"
-                onChange={(date: string | null) =>
-                  setEndDate(date != null ? dayjs(date) : null)
-                }
-                shouldDisableMonth={shouldDisableEndMonth}
-                shouldDisableYear={shouldDisableEndYear}
-                disablePast
-                slotProps={{ textField: { fullWidth: true, required: true } }}
-                views={['year', 'month']}
-              />
+              <TextField
+                select
+                label="Select your project duration"
+                defaultValue="3"
+                onChange={(e) => setDuration(parseInt(e.target.value))}
+                required
+                fullWidth
+              >
+                {projectDurations.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </TextField>
             </Grid>
             <Grid item xs={12} md={12} lg={4}>
               <TextField
