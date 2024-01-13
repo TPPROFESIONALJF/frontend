@@ -11,27 +11,29 @@ export const roboto = Roboto({
 // Create a theme instance.
 const theme = createTheme({
   palette: {
+    mode: 'dark',
     primary: {
-      main: '#8858ED',
+      main: '#8858ED'
     },
     secondary: {
-      main: '#19857b',
+      main: '#19857b'
     },
     error: {
-      main: red.A400,
+      main: red.A400
     },
     background: { 
-      default: '#060506' 
-    }
+      default: '#060506'
+    },
   },
   typography: {
-    fontFamily: roboto.style.fontFamily,
+    fontFamily: roboto.style.fontFamily
   },
   components: {
     MuiAppBar: {
       styleOverrides: {
         colorPrimary: {
-          backgroundColor: '#060506' 
+          backgroundColor: '#060506',
+          backgroundImage: 'none'
         }
       }
     }
