@@ -15,6 +15,7 @@ import { useEffect, useState } from 'react';
 import { useDebounce } from '@uidotdev/usehooks';
 import '@/utils/numberUtils'
 import { SnackbarProvider, enqueueSnackbar } from 'notistack';
+import dayjs from 'dayjs';
 
 export default function Project() {
   const [investAmount, setInvestAmount] = useState(0);
@@ -143,113 +144,153 @@ export default function Project() {
           Investing... <br />Please review your wallet to approve the transactions
         </Backdrop>
         {project !== undefined &&
-          <Card sx={{ width: "100%" }}>
-            <CardContent>
-              <Typography
-                component="h3"
-                variant="h3"
-                fontWeight="fontWeightBold"
-                align="center"
-              >
-                {project.name}
-              </Typography>
-              <Typography
-                component="h1"
-                variant="subtitle1"
-                gutterBottom
-                align="center"
-              >
-                Category: {getIndustrieName()}
-              </Typography>
-              <Grid container spacing={2} sx={{ mt: 1 }}>
-                <Grid item md={6}>
-                  <Card sx={{
-                    width: "100%",
-                    backgroundColor: 'background.default'
-                  }}>
-                    <CardMedia component="div"
-                      sx={{
-                        // 16:9
-                        pt: '56.25%',
-                      }}
-                      image="https://source.unsplash.com/random?wallpapers">
-                    </CardMedia>
-                  </Card>
-                </Grid>
-                <Grid item md={6}>
-                  <Card variant="outlined"
-                    sx={{
-                      height: "100%",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      display: "flex",
-                      backgroundColor: 'background.default',
-                      borderColor: 'primary.main'
+          <Stack spacing={4}>
+            <Card sx={{ width: "100%", px: 4, py: 2 }}>
+              <CardContent>
+                <Typography
+                  component="h3"
+                  variant="h3"
+                  fontWeight="fontWeightBold"
+                  align="center"
+                >
+                  {project.name}
+                </Typography>
+                <Typography
+                  component="h1"
+                  variant="subtitle1"
+                  gutterBottom
+                  align="center"
+                >
+                  Category: {getIndustrieName()}
+                </Typography>
+                <Grid container spacing={2} sx={{ mt: 1 }}>
+                  <Grid item md={6}>
+                    <Card sx={{
+                      width: "100%",
+                      backgroundColor: 'background.default'
                     }}>
-                    <CardContent>
-                      <Stack direction="column" spacing={2}>
-                        <Stack
-                          direction="row"
-                          spacing={1}
-                          alignItems="center"
-                          justifyContent="center">
-                          <Image
-                            src="/images/investors.png"
-                            alt="Users Logo"
-                            width="0"
-                            height="0"
-                            sizes="100vw"
-                            style={{ height: 'auto', width: '36px' }}
-                          />
-                          <Typography variant="body1">
-                            {(investorsNumber ?? 0).toString()} Unique contributors
-                          </Typography>
+                      <CardMedia component="div"
+                        sx={{
+                          // 16:9
+                          pt: '56.25%',
+                        }}
+                        image="https://source.unsplash.com/random?wallpapers">
+                      </CardMedia>
+                    </Card>
+                  </Grid>
+                  <Grid item md={6}>
+                    <Card variant="outlined"
+                      sx={{
+                        height: "100%",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        display: "flex",
+                        backgroundColor: 'background.default',
+                        borderColor: 'primary.main'
+                      }}>
+                      <CardContent>
+                        <Stack direction="column" spacing={2}>
+                          <Stack
+                            direction="row"
+                            spacing={1}
+                            alignItems="center"
+                            justifyContent="center">
+                            <Image
+                              src="/images/investors.png"
+                              alt="Users Logo"
+                              width="0"
+                              height="0"
+                              sizes="100vw"
+                              style={{ height: 'auto', width: '36px' }}
+                            />
+                            <Typography variant="body1">
+                              {(investorsNumber ?? 0).toString()} Unique contributors
+                            </Typography>
+                          </Stack>
+                          <Stack
+                            direction="row"
+                            spacing={1}
+                            alignItems="center"
+                            justifyContent="center">
+                            <Image
+                              src="/images/token.png"
+                              alt="Token logo"
+                              width="0"
+                              height="0"
+                              sizes="100vw"
+                              style={{ height: 'auto', width: '36px' }}
+                            />
+                            <Typography variant="body1">
+                              {project.funded.asTokenStandardUnit().toString()}/{project.goal.asTokenStandardUnit().toString()} Tokens funded
+                            </Typography>
+                          </Stack>
+                          {fundedAmount != undefined && fundedAmount > 0 &&
+                            <Typography variant="body1" width="100%" textAlign="center">
+                              You funded {fundedAmount.asTokenStandardUnit().toString()} tokens
+                            </Typography>
+                          }
+                          <LinearProgressWithLabel color="secondary" value={getProjectProgress()}></LinearProgressWithLabel>
+                          <Button
+                            fullWidth
+                            variant="contained"
+                            onClick={handleOpen}>
+                            INVEST NOW
+                          </Button>
                         </Stack>
-                        <Stack
-                          direction="row"
-                          spacing={1}
-                          alignItems="center"
-                          justifyContent="center">
-                          <Image
-                            src="/images/token.png"
-                            alt="Token logo"
-                            width="0"
-                            height="0"
-                            sizes="100vw"
-                            style={{ height: 'auto', width: '36px' }}
-                          />
-                          <Typography variant="body1">
-                            {project.funded.asTokenStandardUnit().toString()}/{project.goal.asTokenStandardUnit().toString()} Tokens funded
-                          </Typography>
-                        </Stack>
-                        {fundedAmount != undefined && fundedAmount > 0 &&
-                          <Typography variant="body1" width="100%" textAlign="center">
-                            You funded {fundedAmount.asTokenStandardUnit().toString()} tokens
-                          </Typography>
-                        }
-                        <LinearProgressWithLabel color="secondary" value={getProjectProgress()}></LinearProgressWithLabel>
-                        <Button
-                          fullWidth
-                          variant="contained"
-                          onClick={handleOpen}>
-                          INVEST NOW
-                        </Button>
-                      </Stack>
-                    </CardContent>
-                  </Card>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                  <Grid item md={12}>
+                    <Typography
+                      component="h1"
+                      variant="body1"
+                      gutterBottom
+                    >
+                      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+                    </Typography>
+                  </Grid>
                 </Grid>
-                <Grid item md={12}>
-                  <Typography
-                    component="h1"
-                    variant="body1"
-                    gutterBottom
-                  >
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-                  </Typography>
-                </Grid>
-              </Grid>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+            <Card sx={{ width: "100%", px: 4, py: 2 }}>
+              <CardContent>
+                <Typography
+                  component="h3"
+                  variant="h3"
+                  fontWeight="fontWeightBold"
+                  align="center"
+                  sx={{ pb: 4 }}
+                >
+                  Milestones
+                </Typography>
+                <Card variant="outlined"
+                  sx={{
+                    height: "100%",
+                    borderRadius: 2,
+                    backgroundColor: 'background.default',
+                    borderColor: 'primary.main'
+                  }}>
+                  <CardContent>
+                    <Typography
+                      component="h1"
+                      variant="h5"
+                      fontWeight="fontWeightBold"
+                    >
+                      Next milestone: Project start
+                    </Typography>
+                    <Typography
+                      component="h1"
+                      variant="subtitle1"
+                      color="gray"
+                      gutterBottom
+                    >
+                      ({dayjs.unix(Number(project.startDate)).format('DD/MM/YYYY')})
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </CardContent>
+            </Card>
+          </Stack>
         }
       </Container>
     </>
