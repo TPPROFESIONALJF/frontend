@@ -2,7 +2,6 @@ import { Backdrop, Button, Card, CardContent, CardMedia, CircularProgress, Conta
 import Head from 'next/head';
 import { useRouter } from 'next/router'
 import { useContractRead, useAccount } from 'wagmi';
-import { waitForTransaction, writeContract, prepareWriteContract } from '@wagmi/core'
 import { fundingManagerABI } from "@/contracts/FundingManager";
 import { dummyDAIABI } from "@/contracts/DummyDAI";
 import ContractAddresses from "@/contracts/ContractAddresses.json";
@@ -15,6 +14,7 @@ import { useEffect, useState } from 'react';
 import { useDebounce } from '@uidotdev/usehooks';
 import '@/utils/numberUtils'
 import { SnackbarProvider, enqueueSnackbar } from 'notistack';
+import MilestoneCard from '@/components/MilestoneCard';
 import dayjs from 'dayjs';
 
 export default function Project() {
@@ -64,6 +64,14 @@ export default function Project() {
     abi: dummyDAIABI,
     functionName: 'balanceOf',
     args: [address as `0x${string}`],
+    watch: true
+  });
+
+  const { data: readMilestones } = useContractRead({
+    address: ContractAddresses.fundingManagerAddress as `0x${string}`,
+    abi: fundingManagerABI,
+    functionName: 'getMilestonesByProjectId',
+    args: [projectId],
     watch: true
   });
 
@@ -259,35 +267,52 @@ export default function Project() {
                   variant="h3"
                   fontWeight="fontWeightBold"
                   align="center"
-                  sx={{ pb: 4 }}
+                  sx={{ pb: 3 }}
                 >
                   Milestones
                 </Typography>
-                <Card variant="outlined"
-                  sx={{
-                    height: "100%",
-                    borderRadius: 2,
-                    backgroundColor: 'background.default',
-                    borderColor: 'primary.main'
-                  }}>
-                  <CardContent>
-                    <Typography
-                      component="h1"
-                      variant="h5"
-                      fontWeight="fontWeightBold"
-                    >
-                      Next milestone: Project start
-                    </Typography>
-                    <Typography
-                      component="h1"
-                      variant="subtitle1"
-                      color="gray"
-                      gutterBottom
-                    >
-                      ({dayjs.unix(Number(project.startDate)).format('DD/MM/YYYY')})
-                    </Typography>
-                  </CardContent>
-                </Card>
+                <Stack direction="column" spacing={2}>
+                  <Typography
+                    component="h5"
+                    variant="h5"
+                    fontWeight="fontWeightBold"
+                  >
+                    Active milestone
+                  </Typography>
+                  <MilestoneCard milestone={{
+                    name: "test",
+                    startDate: dayjs.unix(Number(project.startDate)),
+                    endDate: undefined
+                  }}
+                  />
+                  <Typography
+                    component="h5"
+                    variant="h5"
+                    fontWeight="fontWeightBold"
+                    sx={{pt: 1}}
+                  >
+                    Next milestone
+                  </Typography>
+                  <MilestoneCard milestone={{
+                    name: "test",
+                    startDate: dayjs.unix(Number(project.startDate)),
+                    endDate: undefined
+                  }}
+                  />
+                  <Typography
+                    component="h5"
+                    variant="h5"
+                    fontWeight="fontWeightBold"
+                    sx={{pt: 1}}
+                  >
+                    Milestone history
+                  </Typography>
+                  <MilestoneCard milestone={{
+                    name: "test",
+                    startDate: dayjs.unix(Number(project.startDate)),
+                    endDate: undefined
+                  }} />
+                </Stack>
               </CardContent>
             </Card>
           </Stack>

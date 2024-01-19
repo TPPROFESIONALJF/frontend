@@ -63,7 +63,7 @@ export default function ProjectCreate() {
   const [milestoneSpan, setMilestoneSpan] = useState<number>(3);
 
   const { data: minGoal } = useContractRead({
-    address: ContractAddresses.fundingManagerAddress as `0x$cd{string}`,
+    address: ContractAddresses.fundingManagerAddress as `0x${string}`,
     abi: fundingManagerABI,
     functionName: 'MIN_GOAL'
   });
@@ -76,8 +76,8 @@ export default function ProjectCreate() {
       goal?.asTokenSmallestUnit() ?? BigInt(-1),
       name!!,
       industrie!!,
-      BigInt(startDate?.unix() ?? dayjs().unix()),
-      BigInt(startDate?.add(duration, durationUnit).unix() ?? dayjs().unix()),
+      BigInt(startDate?.startOf("month").unix() ?? dayjs().unix()),
+      BigInt(startDate?.startOf("month").add(duration, durationUnit).unix() ?? dayjs().unix()),
       calculateMilestonesDates()
     ]
   });
