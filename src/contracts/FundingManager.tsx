@@ -106,6 +106,19 @@ export const fundingManagerABI = [
     "inputs": [
       {
         "internalType": "uint256",
+        "name": "newMinTime",
+        "type": "uint256"
+      }
+    ],
+    "name": "changeMinTimeBetweenMilestones",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
         "name": "_goal",
         "type": "uint256"
       },
@@ -130,9 +143,9 @@ export const fundingManagerABI = [
         "type": "uint256"
       },
       {
-        "internalType": "enum FundingManager.Month[]",
-        "name": "milestonesMonths",
-        "type": "uint8[]"
+        "internalType": "uint256[]",
+        "name": "milestonesDates",
+        "type": "uint256[]"
       }
     ],
     "name": "create",
@@ -270,6 +283,11 @@ export const fundingManagerABI = [
             "internalType": "uint256",
             "name": "funded",
             "type": "uint256"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "milestonesDates",
+            "type": "uint256[]"
           }
         ],
         "internalType": "struct FundingManager.Project",
@@ -330,6 +348,11 @@ export const fundingManagerABI = [
             "internalType": "uint256",
             "name": "funded",
             "type": "uint256"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "milestonesDates",
+            "type": "uint256[]"
           }
         ],
         "internalType": "struct FundingManager.Project[]",
@@ -377,6 +400,25 @@ export const fundingManagerABI = [
         "internalType": "address",
         "name": "",
         "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "nextMilestones",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -494,6 +536,13 @@ export const fundingManagerABI = [
   {
     "inputs": [],
     "name": "renounceOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "startVotations",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
