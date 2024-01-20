@@ -123,6 +123,30 @@ export const fundingManagerABI = [
   {
     "inputs": [
       {
+        "internalType": "bytes",
+        "name": "checkData",
+        "type": "bytes"
+      }
+    ],
+    "name": "checkUpkeep",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "upkeepNeeded",
+        "type": "bool"
+      },
+      {
+        "internalType": "bytes",
+        "name": "performData",
+        "type": "bytes"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "uint256",
         "name": "_goal",
         "type": "uint256"
@@ -169,13 +193,6 @@ export const fundingManagerABI = [
       }
     ],
     "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "endMilestones",
-    "outputs": [],
-    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -249,52 +266,6 @@ export const fundingManagerABI = [
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "projectId",
-        "type": "uint256"
-      }
-    ],
-    "name": "getMilestonesByProjectId",
-    "outputs": [
-      {
-        "components": [
-          {
-            "internalType": "uint256",
-            "name": "projectId",
-            "type": "uint256"
-          },
-          {
-            "internalType": "int256",
-            "name": "dcfScore",
-            "type": "int256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "proposalId",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "date",
-            "type": "uint256"
-          },
-          {
-            "internalType": "enum FundingManager.MilestoneStage",
-            "name": "stage",
-            "type": "uint8"
-          }
-        ],
-        "internalType": "struct FundingManager.MilestoneExecution[]",
-        "name": "",
-        "type": "tuple[]"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
         "name": "id",
         "type": "uint256"
       }
@@ -349,9 +320,21 @@ export const fundingManagerABI = [
             "type": "uint256"
           },
           {
-            "internalType": "uint256[]",
+            "components": [
+              {
+                "internalType": "uint256",
+                "name": "startDate",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "endDate",
+                "type": "uint256"
+              }
+            ],
+            "internalType": "struct FundingManager.MilestoneDates[]",
             "name": "milestonesDates",
-            "type": "uint256[]"
+            "type": "tuple[]"
           },
           {
             "internalType": "uint256",
@@ -424,9 +407,21 @@ export const fundingManagerABI = [
             "type": "uint256"
           },
           {
-            "internalType": "uint256[]",
+            "components": [
+              {
+                "internalType": "uint256",
+                "name": "startDate",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "endDate",
+                "type": "uint256"
+              }
+            ],
+            "internalType": "struct FundingManager.MilestoneDates[]",
             "name": "milestonesDates",
-            "type": "uint256[]"
+            "type": "tuple[]"
           },
           {
             "internalType": "uint256",
@@ -521,7 +516,12 @@ export const fundingManagerABI = [
       },
       {
         "internalType": "uint256",
-        "name": "date",
+        "name": "startDate",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "endDate",
         "type": "uint256"
       },
       {
@@ -545,7 +545,12 @@ export const fundingManagerABI = [
     "outputs": [
       {
         "internalType": "uint256",
-        "name": "",
+        "name": "startDate",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "endDate",
         "type": "uint256"
       }
     ],
@@ -576,6 +581,19 @@ export const fundingManagerABI = [
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "performData",
+        "type": "bytes"
+      }
+    ],
+    "name": "performUpkeep",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -674,13 +692,6 @@ export const fundingManagerABI = [
   {
     "inputs": [],
     "name": "renounceOwnership",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "startMilestones",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

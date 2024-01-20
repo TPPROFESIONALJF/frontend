@@ -94,8 +94,8 @@ export default function ProjectCreate() {
   }
 
   function calculateMilestonesDates(): bigint[] {
-    let milestoneDate = startDate?.add(milestoneSpan, "month");;
-    let endDate = startDate?.add(duration, "month");
+    let milestoneDate = startDate?.startOf("month")?.add(milestoneSpan, "month");;
+    let endDate = startDate?.startOf("month")?.add(duration, "month");
     let dates: bigint[] = [];
     while (milestoneDate?.isBefore(endDate)) {
       dates.push(BigInt(milestoneDate.unix()));
