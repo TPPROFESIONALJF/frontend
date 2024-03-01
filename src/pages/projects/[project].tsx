@@ -14,7 +14,7 @@ import { useEffect, useState } from 'react';
 import { useDebounce } from '@uidotdev/usehooks';
 import '@/utils/numberUtils'
 import { SnackbarProvider, enqueueSnackbar } from 'notistack';
-import MilestoneCard from '@/components/MilestoneCard';
+import { StartMilestoneCard, ReportMilestoneCard } from '@/components/StartMilestoneCard';
 import dayjs from 'dayjs';
 
 export default function Project() {
@@ -279,38 +279,47 @@ export default function Project() {
                   >
                     Active milestone
                   </Typography>
-                  <MilestoneCard milestone={{
+                  <StartMilestoneCard milestone={{
                     name: "test",
                     startDate: dayjs.unix(Number(project.startDate)),
-                    endDate: undefined
+                    endDate: undefined,
+                    tokensToRelease: (project.funded / project.releaseMilestonesQuantity).asTokenStandardUnit(),
+                    activeStep: 1,
+                    isOwnerView: false
                   }}
                   />
                   <Typography
                     component="h5"
                     variant="h5"
                     fontWeight="fontWeightBold"
-                    sx={{pt: 1}}
+                    sx={{ pt: 1 }}
                   >
                     Next milestone
                   </Typography>
-                  <MilestoneCard milestone={{
+                  <ReportMilestoneCard milestone={{
                     name: "test",
-                    startDate: dayjs.unix(Number(project.startDate)),
-                    endDate: undefined
+                    startDate: dayjs.unix(Number(project.startDate)).subtract(14, "day"),
+                    endDate: dayjs.unix(Number(project.startDate)),
+                    tokensToRelease: (project.funded / project.releaseMilestonesQuantity).asTokenStandardUnit(),
+                    activeStep: 0,
+                    isOwnerView: false
                   }}
                   />
                   <Typography
                     component="h5"
                     variant="h5"
                     fontWeight="fontWeightBold"
-                    sx={{pt: 1}}
+                    sx={{ pt: 1 }}
                   >
                     Milestone history
                   </Typography>
-                  <MilestoneCard milestone={{
+                  <StartMilestoneCard milestone={{
                     name: "test",
                     startDate: dayjs.unix(Number(project.startDate)),
-                    endDate: undefined
+                    endDate: undefined,
+                    tokensToRelease: (project.funded / project.releaseMilestonesQuantity).asTokenStandardUnit(),
+                    activeStep: 0,
+                    isOwnerView: false
                   }} />
                 </Stack>
               </CardContent>
