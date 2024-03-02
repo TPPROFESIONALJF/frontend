@@ -14,7 +14,7 @@ import { useEffect, useState } from 'react';
 import { useDebounce } from '@uidotdev/usehooks';
 import '@/utils/numberUtils'
 import { SnackbarProvider, enqueueSnackbar } from 'notistack';
-import { StartMilestoneCard, ReportMilestoneCard } from '@/components/StartMilestoneCard';
+import { StartMilestoneCard, ReportMilestoneCard } from '@/components/MilestoneCards';
 import dayjs from 'dayjs';
 
 export default function Project() {
@@ -301,7 +301,7 @@ export default function Project() {
                     startDate: dayjs.unix(Number(project.startDate)).subtract(14, "day"),
                     endDate: dayjs.unix(Number(project.startDate)),
                     tokensToRelease: (project.funded / project.releaseMilestonesQuantity).asTokenStandardUnit(),
-                    activeStep: 0,
+                    activeStep: 1,
                     isOwnerView: false
                   }}
                   />

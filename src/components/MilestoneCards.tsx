@@ -1,8 +1,7 @@
-import { BluetoothDisabled } from "@mui/icons-material";
-import { Button, Card, CardContent, Step, StepContent, StepLabel, Stepper, Typography } from "@mui/material";
+import { Card, CardContent, Step, StepLabel, Stepper, Typography } from "@mui/material";
 import { Dayjs } from 'dayjs';
 import { useState } from "react";
-import { DocumentUploadStep, MilestoneStep } from "./MilestoneSteps";
+import { DocumentUploadStep, MilestoneStep, VotingInProgressMilestoneStep, VotingInProgressStep } from "./MilestoneSteps";
 
 interface MilestoneProps {
   milestone: Milestone;
@@ -29,6 +28,11 @@ function getCardTitle(milestone: Milestone) {
     : `${milestone.startDate.format('DD/MM/YYYY')}`
 }
 
+function onVoteCast(voteFor: boolean) {
+  // TODO: Add vote cast logic
+  console.log(voteFor);
+}
+
 export function StartMilestoneCard({ milestone }: MilestoneProps) {
   const [activeStep, setActiveStep] = useState(milestone.activeStep);
 
@@ -37,7 +41,8 @@ export function StartMilestoneCard({ milestone }: MilestoneProps) {
       "Funding release",
       milestone.startDate,
       undefined,
-      milestone.tokensToRelease.toString() + ((activeStep == 0) ? "tokens to release" : "tokens released")
+      milestone.tokensToRelease.toString() + ((activeStep == 0) ? "tokens to release" : "tokens released"),
+      milestone.isOwnerView
     )
   ];
 
@@ -102,17 +107,17 @@ export function ReportMilestoneCard({ milestone }: MilestoneProps) {
   function buildMilestoneSteps(stepNumber: number): MilestoneStep {
     const startDate = milestone.startDate;
     const endDate = milestone.endDate;
-    const middleDate = startDate.add(7, "day");
+    const middleDate = startDate.add(7, "day"); // TODO: Replace logic with (endDate - startDate)/2 minutes (to allow minutes milestones)
     if (stepNumber == 0) {
-      return new MilestoneStep("Report documents upload", startDate, middleDate, "");
+      return new MilestoneStep("Report documents upload", startDate, middleDate, "", milestone.isOwnerView);
     } else if (stepNumber == 1) {
-      return new MilestoneStep("Voting period", middleDate, endDate, "");
+      return new VotingInProgressMilestoneStep("Voting period", middleDate, endDate, "", milestone.isOwnerView, false, onVoteCast);
     } else if (stepNumber == 2) {
-      return new MilestoneStep("Voting results", endDate!!, undefined, "");
+      return new MilestoneStep("Voting results", endDate!!, undefined, "", milestone.isOwnerView);
     } else if (stepNumber == 3) {
-      return new MilestoneStep("Funding release/project cancellation", endDate!!, undefined, `${milestone.tokensToRelease.toString()} tokens to release`)
+      return new MilestoneStep("Funding release/project cancellation", endDate!!, undefined, `${milestone.tokensToRelease.toString()} tokens to release`, milestone.isOwnerView)
     } else {
-      return new MilestoneStep("DEFAULT", startDate, startDate, "");
+      return new MilestoneStep("DEFAULT", startDate, startDate, "", milestone.isOwnerView);
     }
   }
 
@@ -144,7 +149,11 @@ export function ReportMilestoneCard({ milestone }: MilestoneProps) {
           </Typography>
           <Stepper activeStep={activeStep} orientation="vertical">
             {steps.map((step, index) => {
-              return <DocumentUploadStep {...step} />
+              if (step instanceof VotingInProgressMilestoneStep) {
+                return <VotingInProgressStep step={step} />
+              } else {
+                return <DocumentUploadStep step={step} />
+              }
             })}
           </Stepper>
         </CardContent>
