@@ -14,8 +14,9 @@ import { useEffect, useState } from 'react';
 import { useDebounce } from '@uidotdev/usehooks';
 import '@/utils/numberUtils'
 import { SnackbarProvider, enqueueSnackbar } from 'notistack';
-import { StartMilestoneCard, ReportMilestoneCard } from '@/components/MilestoneCards';
 import dayjs from 'dayjs';
+import { ReportMilestoneCard } from '@/components/MilestoneCards/ReportMilestoneCard';
+import { StartMilestoneCard } from '@/components/MilestoneCards/StartMilestoneCard';
 
 export default function Project() {
   const [investAmount, setInvestAmount] = useState(0);
@@ -285,7 +286,8 @@ export default function Project() {
                     endDate: undefined,
                     tokensToRelease: (project.funded / project.releaseMilestonesQuantity).asTokenStandardUnit(),
                     activeStep: 1,
-                    isOwnerView: false
+                    isOwnerView: false,
+                    votingResults: undefined
                   }}
                   />
                   <Typography
@@ -301,8 +303,9 @@ export default function Project() {
                     startDate: dayjs.unix(Number(project.startDate)).subtract(14, "day"),
                     endDate: dayjs.unix(Number(project.startDate)),
                     tokensToRelease: (project.funded / project.releaseMilestonesQuantity).asTokenStandardUnit(),
-                    activeStep: 1,
-                    isOwnerView: false
+                    activeStep: 3,
+                    isOwnerView: false,
+                    votingResults: undefined
                   }}
                   />
                   <Typography
@@ -319,7 +322,8 @@ export default function Project() {
                     endDate: undefined,
                     tokensToRelease: (project.funded / project.releaseMilestonesQuantity).asTokenStandardUnit(),
                     activeStep: 0,
-                    isOwnerView: false
+                    isOwnerView: false,
+                    votingResults: undefined
                   }} />
                 </Stack>
               </CardContent>
