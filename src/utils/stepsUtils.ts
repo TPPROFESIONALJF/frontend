@@ -1,4 +1,5 @@
 import { DocumentUploadStepData } from "@/domain/DocumentUploadStepData";
+import { EndMilestoneStepData } from "@/domain/EndMilestoneStepData";
 import { Milestone } from "@/domain/Milestone";
 import { MilestoneStepData } from "@/domain/MilestoneStepData";
 import { VotingInProgressMilestoneStepData } from "@/domain/VotingInProgressMilestoneStepData";
@@ -13,7 +14,8 @@ export function getDates(step: MilestoneStepData) {
 export function buildMilestoneSteps(milestone: Milestone, stepNumber: number, onVoteCast: (voteFor: boolean) => void): MilestoneStepData {
   const startDate = milestone.startDate;
   const endDate = milestone.endDate;
-  const middleDate = startDate.add(7, "day"); // TODO: Replace logic with (endDate - startDate)/2 minutes (to allow minutes milestones)
+  const diff = endDate?.diff(startDate, 'minute');
+  const middleDate = endDate !== undefined ? startDate.add(diff!! / 2, "minute") : startDate;
   if (stepNumber == 0) {
     return new DocumentUploadStepData("Report documents upload", startDate, middleDate, "", milestone.isOwnerView);
   } else if (stepNumber == 1) {
@@ -33,7 +35,7 @@ export function buildMilestoneSteps(milestone: Milestone, stepNumber: number, on
       stepName = "Project cancellation";
       caption = "Tokens returned to investors";
     }
-    return new MilestoneStepData(stepName, endDate!!, undefined, caption, milestone.isOwnerView)
+    return new EndMilestoneStepData(stepName, endDate!!, undefined, caption, milestone.isOwnerView)
   } else {
     return new MilestoneStepData("DEFAULT", startDate, startDate, "", milestone.isOwnerView);
   }

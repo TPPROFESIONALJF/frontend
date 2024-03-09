@@ -1,4 +1,4 @@
-import { MilestoneStepData } from "@/domain/MilestoneStep";
+import { MilestoneStepData } from "@/domain/MilestoneStepData";
 import { getDates } from "@/utils/stepsUtils";
 import { Button, Step, StepContent, StepLabel, Typography } from "@mui/material";
 

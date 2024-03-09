@@ -17,6 +17,7 @@ import { SnackbarProvider, enqueueSnackbar } from 'notistack';
 import dayjs from 'dayjs';
 import { ReportMilestoneCard } from '@/components/MilestoneCards/ReportMilestoneCard';
 import { StartMilestoneCard } from '@/components/MilestoneCards/StartMilestoneCard';
+import { VotingResult } from '@/domain/VotingResult';
 
 export default function Project() {
   const [investAmount, setInvestAmount] = useState(0);
@@ -124,6 +125,10 @@ export default function Project() {
     }
   }
 
+  function makeVotingResults(): VotingResult {
+    return { forVotes: 0, againstVotes: 0, waitingVotes: 0, userVotedFor: true, finalResult: true };
+  }
+  
   return (
     <>
       <Head>
@@ -305,7 +310,7 @@ export default function Project() {
                     tokensToRelease: (project.funded / project.releaseMilestonesQuantity).asTokenStandardUnit(),
                     activeStep: 3,
                     isOwnerView: false,
-                    votingResults: undefined
+                    votingResults: makeVotingResults()
                   }}
                   />
                   <Typography
