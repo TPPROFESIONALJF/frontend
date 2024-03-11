@@ -22,10 +22,10 @@ export function buildMilestoneSteps(milestone: Milestone, stepNumber: number, on
     return new VotingInProgressMilestoneStepData("Voting period", middleDate, endDate, "", milestone.isOwnerView, true, true, milestone.votingResults, onVoteCast);
   } else if (stepNumber == 2) {
     return new VotingResultsMilestoneStepData("Voting results", endDate!!, undefined, "", milestone.isOwnerView, milestone.votingResults);
-  } else if (stepNumber == 3 && milestone.votingResults != undefined) {
+  } else if (stepNumber == 3) {
     let stepName = "";
     let caption = "";
-    if (milestone.votingResults.finalResult === undefined) {
+    if (milestone?.votingResults?.finalResult === undefined) {
       stepName = "Funding release/project cancellation";
       caption = `${milestone.tokensToRelease.toString()} tokens to release`;
     } else if (milestone.votingResults.finalResult) {

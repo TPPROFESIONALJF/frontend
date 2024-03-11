@@ -18,6 +18,8 @@ import dayjs from 'dayjs';
 import { ReportMilestoneCard } from '@/components/MilestoneCards/ReportMilestoneCard';
 import { StartMilestoneCard } from '@/components/MilestoneCards/StartMilestoneCard';
 import { VotingResult } from '@/domain/VotingResult';
+import { MilestoneExecution } from '@/domain/MilestoneExecution';
+import { EndMilestoneCard } from '@/components/MilestoneCards/EndMilestoneCard';
 
 export default function Project() {
   const [investAmount, setInvestAmount] = useState(0);
@@ -69,13 +71,36 @@ export default function Project() {
     watch: true
   });
 
-  const { data: readMilestones } = useContractRead({
+  const { data: milestonesExecutions } = useContractRead({
     address: ContractAddresses.fundingManagerAddress as `0x${string}`,
     abi: fundingManagerABI,
-    functionName: 'getMilestonesByProjectId',
+    functionName: 'getMilestonesExecutions',
     args: [projectId],
     watch: true
   });
+
+  const { data: nextMilestone } = useContractRead({
+    address: ContractAddresses.fundingManagerAddress as `0x${string}`,
+    abi: fundingManagerABI,
+    functionName: 'getNextMilestone',
+    args: [projectId],
+    watch: true
+  });
+
+  let dates = undefined;
+  if (project !== undefined) {
+    let endDate1 = BigInt(dayjs.unix(Number(project!!.startDate)).add(7, "day").unix());
+    let startDate2 = BigInt(dayjs.unix(Number(project!!.startDate)).add(2, "month").unix());
+    let endDate2 = BigInt(dayjs.unix(Number(startDate2)).add(7, "day").unix());
+    let endDate3 = BigInt(dayjs.unix(Number(project!!.endDate)).add(3, "month").unix());
+    let startDate3 = BigInt(dayjs.unix(Number(endDate3)).subtract(7, "day").unix());
+    dates = project?.milestonesDates?.concat([
+      { startDate: project.startDate, endDate: endDate1 },
+      { startDate: startDate2, endDate: endDate2 },
+      { startDate: startDate3, endDate: endDate3 },
+      { startDate: project.endDate, endDate: project.endDate}
+    ]);
+  }
 
   if (project !== undefined && project.id === BigInt(0)) {
     return <NotFound />;
@@ -128,7 +153,7 @@ export default function Project() {
   function makeVotingResults(): VotingResult {
     return { forVotes: 0, againstVotes: 0, waitingVotes: 0, userVotedFor: true, finalResult: true };
   }
-  
+
   return (
     <>
       <Head>
@@ -286,7 +311,6 @@ export default function Project() {
                     Active milestone
                   </Typography>
                   <StartMilestoneCard milestone={{
-                    name: "test",
                     startDate: dayjs.unix(Number(project.startDate)),
                     endDate: undefined,
                     tokensToRelease: (project.funded / project.releaseMilestonesQuantity).asTokenStandardUnit(),
@@ -304,7 +328,6 @@ export default function Project() {
                     Next milestone
                   </Typography>
                   <ReportMilestoneCard milestone={{
-                    name: "test",
                     startDate: dayjs.unix(Number(project.startDate)).subtract(14, "day"),
                     endDate: dayjs.unix(Number(project.startDate)),
                     tokensToRelease: (project.funded / project.releaseMilestonesQuantity).asTokenStandardUnit(),
@@ -319,10 +342,50 @@ export default function Project() {
                     fontWeight="fontWeightBold"
                     sx={{ pt: 1 }}
                   >
-                    Milestone history
+                    Milestones calendar
+                  </Typography>
+                  <Stack spacing={2}>
+                    {dates?.map((milestoneDates) => {
+                      if (milestoneDates.startDate == project.startDate) {
+                        return <StartMilestoneCard milestone={{
+                          startDate: dayjs.unix(Number(milestoneDates.startDate)),
+                          endDate: undefined,
+                          tokensToRelease: (project.funded / project.releaseMilestonesQuantity).asTokenStandardUnit(),
+                          activeStep: -1,
+                          isOwnerView: false,
+                          votingResults: undefined
+                        }} />
+                      } else if (milestoneDates.startDate == project.endDate) {
+                        return <EndMilestoneCard milestone={{
+                          startDate: dayjs.unix(Number(milestoneDates.startDate)),
+                          endDate: undefined,
+                          tokensToRelease: (project.funded / project.releaseMilestonesQuantity).asTokenStandardUnit(),
+                          activeStep: -1,
+                          isOwnerView: false,
+                          votingResults: undefined
+                        }} />
+                      } else {
+                        return <ReportMilestoneCard milestone={{
+                          startDate: dayjs.unix(Number(milestoneDates.startDate)),
+                          endDate: dayjs.unix(Number(milestoneDates.endDate)),
+                          tokensToRelease: (project.funded / project.releaseMilestonesQuantity).asTokenStandardUnit(),
+                          activeStep: -1,
+                          isOwnerView: false,
+                          votingResults: undefined
+                        }}
+                        />
+                      }
+                    })}
+                  </Stack>
+                  <Typography
+                    component="h5"
+                    variant="h5"
+                    fontWeight="fontWeightBold"
+                    sx={{ pt: 1 }}
+                  >
+                    Milestones history
                   </Typography>
                   <StartMilestoneCard milestone={{
-                    name: "test",
                     startDate: dayjs.unix(Number(project.startDate)),
                     endDate: undefined,
                     tokensToRelease: (project.funded / project.releaseMilestonesQuantity).asTokenStandardUnit(),

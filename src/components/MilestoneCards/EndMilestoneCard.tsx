@@ -4,15 +4,22 @@ import { getDates } from "@/utils/stepsUtils";
 import { MilestoneStepData } from "@/domain/MilestoneStepData";
 import { MilestoneProps } from "@/domain/Milestone";
 
-export function StartMilestoneCard({ milestone }: MilestoneProps) {
+export function EndMilestoneCard({ milestone }: MilestoneProps) {
   const [activeStep, setActiveStep] = useState(milestone.activeStep);
 
   const steps = [
     new MilestoneStepData(
-      "Funding release",
+      "Project revenues presentation",
+      milestone.startDate.subtract(14, "day"),
+      milestone.startDate,
+      "",
+      milestone.isOwnerView
+    ),
+    new MilestoneStepData(
+      "Revenues release to investors",
       milestone.startDate,
       undefined,
-      milestone.tokensToRelease.toString() + ((activeStep <= 0) ? " tokens to release" : " tokens released"),
+      "Tokens to release are based on initial investment",
       milestone.isOwnerView
     )
   ];
@@ -32,7 +39,7 @@ export function StartMilestoneCard({ milestone }: MilestoneProps) {
             variant="h5"
             fontWeight="fontWeightBold"
           >
-            Project Start
+            Project End
           </Typography>
           <Typography
             component="h1"

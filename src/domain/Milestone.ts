@@ -2,7 +2,6 @@ import { Dayjs } from "dayjs";
 import { VotingResult } from "./VotingResult";
 
 export interface Milestone {
-  name: string;
   startDate: Dayjs;
   endDate: Dayjs | undefined;
   tokensToRelease: bigint;
