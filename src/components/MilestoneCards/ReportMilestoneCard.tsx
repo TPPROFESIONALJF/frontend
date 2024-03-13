@@ -1,4 +1,4 @@
-import { Milestone, MilestoneProps } from "@/domain/Milestone";
+import { Milestone, MilestoneProps, ReportMilestoneProps } from "@/domain/Milestone";
 import { VotingInProgressMilestoneStepData } from "@/domain/VotingInProgressMilestoneStepData";
 import { Card, CardContent, Step, StepLabel, Stepper, Typography } from "@mui/material";
 import { useState } from "react";
@@ -23,7 +23,7 @@ function onVoteCast(voteFor: boolean) {
   console.log(voteFor);
 }
 
-export function ReportMilestoneCard({ milestone }: MilestoneProps) {
+export function ReportMilestoneCard({ milestone }: ReportMilestoneProps) {
   const [activeStep, setActiveStep] = useState(milestone.activeStep);
 
   const steps = [

@@ -6,7 +6,7 @@ import { fundingManagerABI } from "@/contracts/FundingManager";
 import { dummyDAIABI } from "@/contracts/DummyDAI";
 import ContractAddresses from "@/contracts/ContractAddresses.json";
 import NotFound from './404';
-import { getIndustrieById, increaseAllowance, investOnProject, resetAllowance } from "@/utils/projectsUtils";
+import { ProjectStage, getIndustrieById, increaseAllowance, investOnProject, resetAllowance } from "@/utils/projectsUtils";
 import Image from 'next/image';
 import LinearProgressWithLabel from '@/components/LinearProgressWithLabel';
 import InvestModal from '@/components/InvestModal';
@@ -20,6 +20,7 @@ import { StartMilestoneCard } from '@/components/MilestoneCards/StartMilestoneCa
 import { VotingResult } from '@/domain/VotingResult';
 import { MilestoneExecution } from '@/domain/MilestoneExecution';
 import { EndMilestoneCard } from '@/components/MilestoneCards/EndMilestoneCard';
+import { EndMilestone, Milestone, ReportMilestone, StartMilestone } from '@/domain/Milestone';
 
 export default function Project() {
   const [investAmount, setInvestAmount] = useState(0);
@@ -87,23 +88,97 @@ export default function Project() {
     watch: true
   });
 
-  let dates = undefined;
+  //let activeMilestone = buildMilestoneFromExecution(milestonesExecutions?.at(milestonesExecutions!!.length - 1));
+  let activeMilestone = buildMilestoneFromExecution({
+    projectId: BigInt(1),
+    dcfScore: BigInt(0),
+    proposalId: BigInt(0),
+    startDate: BigInt(dayjs().unix()),
+    endDate: project?.endDate ?? BigInt(dayjs().add(7, "day").unix()),
+    stage: 0
+  });
+
+  // let calendarDates = project.milestonesDates;
+  let calendarDates = undefined;
   if (project !== undefined) {
     let endDate1 = BigInt(dayjs.unix(Number(project!!.startDate)).add(7, "day").unix());
     let startDate2 = BigInt(dayjs.unix(Number(project!!.startDate)).add(2, "month").unix());
     let endDate2 = BigInt(dayjs.unix(Number(startDate2)).add(7, "day").unix());
     let endDate3 = BigInt(dayjs.unix(Number(project!!.endDate)).add(3, "month").unix());
     let startDate3 = BigInt(dayjs.unix(Number(endDate3)).subtract(7, "day").unix());
-    dates = project?.milestonesDates?.concat([
+    calendarDates = project?.milestonesDates?.concat([
       { startDate: project.startDate, endDate: endDate1 },
       { startDate: startDate2, endDate: endDate2 },
       { startDate: startDate3, endDate: endDate3 },
-      { startDate: project.endDate, endDate: project.endDate}
+      { startDate: project.endDate, endDate: project.endDate }
     ]);
   }
 
   if (project !== undefined && project.id === BigInt(0)) {
     return <NotFound />;
+  }
+
+  function buildMilestoneFromNextMilestone(nextMilestone: { startDate: bigint, endDate: bigint }): Milestone {
+    if (nextMilestone.endDate === project?.endDate) {
+      return new EndMilestone(
+        dayjs.unix(Number(activeMilestone.startDate)),
+        dayjs.unix(Number(activeMilestone.endDate)),
+        getTokensToRelease(),
+        0,
+        false
+      );
+    } else if (nextMilestone.startDate === project?.startDate) {
+      return new StartMilestone(
+        dayjs.unix(Number(activeMilestone.startDate)),
+        undefined,
+        getTokensToRelease(),
+        project.stage == ProjectStage.STARTED ? 0 : -1,
+        false
+      );
+    } else {
+      return new ReportMilestone(
+        dayjs.unix(Number(activeMilestone.startDate)),
+        dayjs.unix(Number(activeMilestone.endDate)),
+        getTokensToRelease(),
+        0,
+        false,
+        undefined
+      );
+    }
+  }
+
+  function buildMilestoneFromExecution(activeMilestone: MilestoneExecution): Milestone {
+    if (activeMilestone.endDate === project?.endDate) {
+      return new EndMilestone(
+        dayjs.unix(Number(activeMilestone.startDate)),
+        dayjs.unix(Number(activeMilestone.endDate)),
+        getTokensToRelease(),
+        activeMilestone.stage + 1,
+        false
+      );
+    } else if (activeMilestone.startDate === project?.startDate) {
+      return new StartMilestone(
+        dayjs.unix(Number(activeMilestone.startDate)),
+        undefined,
+        getTokensToRelease(),
+        activeMilestone.stage + 1,
+        false
+      );
+    } else {
+      return new ReportMilestone(
+        dayjs.unix(Number(activeMilestone.startDate)),
+        dayjs.unix(Number(activeMilestone.endDate)),
+        getTokensToRelease(),
+        0,
+        false,
+        undefined
+      );
+    }
+  }
+
+  function getTokensToRelease(): bigint {
+    if (project === undefined) { return BigInt(0); }
+    return (project.funded / project.releaseMilestonesQuantity).asTokenStandardUnit();
   }
 
   function getIndustrieName(): string {
@@ -303,22 +378,25 @@ export default function Project() {
                   Milestones
                 </Typography>
                 <Stack direction="column" spacing={2}>
-                  <Typography
-                    component="h5"
-                    variant="h5"
-                    fontWeight="fontWeightBold"
-                  >
-                    Active milestone
-                  </Typography>
-                  <StartMilestoneCard milestone={{
-                    startDate: dayjs.unix(Number(project.startDate)),
-                    endDate: undefined,
-                    tokensToRelease: (project.funded / project.releaseMilestonesQuantity).asTokenStandardUnit(),
-                    activeStep: 1,
-                    isOwnerView: false,
-                    votingResults: undefined
-                  }}
-                  />
+                  {activeMilestone &&
+                    <Stack direction="column" spacing={2}>
+                      <Typography
+                        component="h5"
+                        variant="h5"
+                        fontWeight="fontWeightBold"
+                      >
+                        Active milestone
+                      </Typography>
+                      {activeMilestone instanceof ReportMilestone &&
+                        <ReportMilestoneCard
+                          milestone={activeMilestone as ReportMilestone}
+                        />
+                      }
+                      {activeMilestone instanceof EndMilestone &&
+                        <EndMilestoneCard milestone={activeMilestone} />
+                      }
+                    </Stack>
+                  }
                   <Typography
                     component="h5"
                     variant="h5"
@@ -330,7 +408,7 @@ export default function Project() {
                   <ReportMilestoneCard milestone={{
                     startDate: dayjs.unix(Number(project.startDate)).subtract(14, "day"),
                     endDate: dayjs.unix(Number(project.startDate)),
-                    tokensToRelease: (project.funded / project.releaseMilestonesQuantity).asTokenStandardUnit(),
+                    tokensToRelease: getTokensToRelease(),
                     activeStep: 3,
                     isOwnerView: false,
                     votingResults: makeVotingResults()
@@ -345,24 +423,22 @@ export default function Project() {
                     Milestones calendar
                   </Typography>
                   <Stack spacing={2}>
-                    {dates?.map((milestoneDates) => {
+                    {calendarDates?.map((milestoneDates) => {
                       if (milestoneDates.startDate == project.startDate) {
                         return <StartMilestoneCard milestone={{
                           startDate: dayjs.unix(Number(milestoneDates.startDate)),
                           endDate: undefined,
-                          tokensToRelease: (project.funded / project.releaseMilestonesQuantity).asTokenStandardUnit(),
+                          tokensToRelease: getTokensToRelease(),
                           activeStep: -1,
-                          isOwnerView: false,
-                          votingResults: undefined
+                          isOwnerView: false
                         }} />
                       } else if (milestoneDates.startDate == project.endDate) {
                         return <EndMilestoneCard milestone={{
                           startDate: dayjs.unix(Number(milestoneDates.startDate)),
                           endDate: undefined,
-                          tokensToRelease: (project.funded / project.releaseMilestonesQuantity).asTokenStandardUnit(),
+                          tokensToRelease: getTokensToRelease(),
                           activeStep: -1,
-                          isOwnerView: false,
-                          votingResults: undefined
+                          isOwnerView: false
                         }} />
                       } else {
                         return <ReportMilestoneCard milestone={{
@@ -390,8 +466,7 @@ export default function Project() {
                     endDate: undefined,
                     tokensToRelease: (project.funded / project.releaseMilestonesQuantity).asTokenStandardUnit(),
                     activeStep: 0,
-                    isOwnerView: false,
-                    votingResults: undefined
+                    isOwnerView: false
                   }} />
                 </Stack>
               </CardContent>

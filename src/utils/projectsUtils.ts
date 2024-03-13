@@ -51,6 +51,13 @@ export function getIndustrieById(id: string) {
   return industries.find((industrie) => industrie.id === id);
 }
 
+export enum ProjectStage {
+  FUNDING = 0,
+  STARTED = 1,
+  CANCELED = 2,
+  FINISHED = 3
+}
+
 const industries = [
   {
     id: '0', name: 'Software',
