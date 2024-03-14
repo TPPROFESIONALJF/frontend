@@ -1,4 +1,5 @@
 import { Backdrop, Box, Button, CircularProgress, Grid, InputAdornment, MenuItem, Stack, TextField, Typography } from "@mui/material";
+import { waitForTransaction, writeContract, prepareWriteContract } from '@wagmi/core'
 import { DatePicker } from "@mui/x-date-pickers";
 import dayjs, { Dayjs } from "dayjs";
 import Head from "next/head";
@@ -68,31 +69,6 @@ export default function ProjectCreate() {
     functionName: 'MIN_GOAL'
   });
 
-  const { config } = usePrepareContractWrite({
-    address: ContractAddresses.fundingManagerAddress as `0x${string}`,
-    abi: fundingManagerABI,
-    functionName: 'create',
-    args: [
-      goal?.asTokenSmallestUnit() ?? BigInt(-1),
-      name!!,
-      industrie!!,
-      BigInt(startDate?.startOf("month").unix() ?? dayjs().unix()),
-      BigInt(startDate?.startOf("month").add(duration, durationUnit).unix() ?? dayjs().unix()),
-      calculateMilestonesDates()
-    ]
-  });
-  const { data, write: create, isError, error } = useContractWrite(config);
-  const { isLoading, isSuccess } = useWaitForTransaction({
-    hash: data?.hash,
-  });
-
-  if (isSuccess) {
-    useRouter().replace("/projects");
-  }
-  if (isError) {
-    enqueueSnackbar(`Error: ${error?.cause}`, { variant: "error" });
-  }
-
   function calculateMilestonesDates(): bigint[] {
     let milestoneDate = startDate?.startOf("month")?.add(milestoneSpan, "month");;
     let endDate = startDate?.startOf("month")?.add(duration, "month");
@@ -104,7 +80,26 @@ export default function ProjectCreate() {
     return dates;
   }
 
-  function handleSubmit(e: FormEvent) {
+  async function createProject() {
+    const { request: config } = await prepareWriteContract({
+      address: ContractAddresses.fundingManagerAddress as `0x${string}`,
+      abi: fundingManagerABI,
+      functionName: 'create',
+      args: [
+        goal?.asTokenSmallestUnit() ?? BigInt(-1),
+        name!!,
+        industrie!!,
+        BigInt(startDate?.startOf("month").unix() ?? dayjs().unix()),
+        BigInt(startDate?.startOf("month").add(duration, durationUnit).unix() ?? dayjs().unix()),
+        calculateMilestonesDates()
+      ]
+    });
+
+    const { hash: createProjectHash } = await writeContract(config);
+    await waitForTransaction({ hash: createProjectHash });
+  }
+
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (milestoneSpan > duration) {
       enqueueSnackbar("Error: Project duration should be greater than milestones span", { variant: "error" });
@@ -114,7 +109,14 @@ export default function ProjectCreate() {
       enqueueSnackbar(`Error: Goal should be at least ${minGoal?.asTokenStandardUnit()} tokens`, { variant: "error" });
       return;
     }
-    create?.();
+    try {
+      await createProject();
+      useRouter().replace("/projects");
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        enqueueSnackbar(`Error: ${e?.cause}`, { variant: "error" });
+      }
+    }
   }
 
   return (
@@ -139,7 +141,7 @@ export default function ProjectCreate() {
 
         <Backdrop
           sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
-          open={isLoading}
+          open={false}
           style={{ position: "absolute" }}
         >
           <CircularProgress color="inherit" sx={{ p: 1 }} />

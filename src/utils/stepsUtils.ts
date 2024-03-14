@@ -19,7 +19,7 @@ export function buildMilestoneSteps(milestone: Milestone, stepNumber: number, on
   if (stepNumber == 0) {
     return new DocumentUploadStepData("Report documents upload", startDate, middleDate, "", milestone.isOwnerView);
   } else if (stepNumber == 1) {
-    return new VotingInProgressMilestoneStepData("Voting period", middleDate, endDate, "", milestone.isOwnerView, true, true, milestone.votingResults, onVoteCast);
+    return new VotingInProgressMilestoneStepData("Voting period", middleDate, endDate, "", milestone.isOwnerView, false, true, milestone.votingResults, onVoteCast);
   } else if (stepNumber == 2) {
     return new VotingResultsMilestoneStepData("Voting results", endDate!!, undefined, "", milestone.isOwnerView, milestone.votingResults);
   } else if (stepNumber == 3) {

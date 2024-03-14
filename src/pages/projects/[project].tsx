@@ -409,7 +409,7 @@ export default function Project() {
                     startDate: dayjs.unix(Number(project.startDate)).subtract(14, "day"),
                     endDate: dayjs.unix(Number(project.startDate)),
                     tokensToRelease: getTokensToRelease(),
-                    activeStep: 3,
+                    activeStep: 2,
                     isOwnerView: false,
                     votingResults: makeVotingResults()
                   }}
@@ -447,7 +447,7 @@ export default function Project() {
                           tokensToRelease: (project.funded / project.releaseMilestonesQuantity).asTokenStandardUnit(),
                           activeStep: -1,
                           isOwnerView: false,
-                          votingResults: undefined
+                          votingResults: makeVotingResults()
                         }}
                         />
                       }
