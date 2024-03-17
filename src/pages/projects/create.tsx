@@ -62,6 +62,8 @@ export default function ProjectCreate() {
   const [industrie, setIndustrie] = useState<number | null>(null);
   const [goal, setGoal] = useState<bigint | null>(null);
   const [milestoneSpan, setMilestoneSpan] = useState<number>(3);
+  const [openBackdrop, setOpenBackdrop] = useState(false);
+  const router = useRouter();
 
   const { data: minGoal } = useContractRead({
     address: ContractAddresses.fundingManagerAddress as `0x${string}`,
@@ -101,6 +103,7 @@ export default function ProjectCreate() {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    setOpenBackdrop(true);
     if (milestoneSpan > duration) {
       enqueueSnackbar("Error: Project duration should be greater than milestones span", { variant: "error" });
       return;
@@ -111,11 +114,14 @@ export default function ProjectCreate() {
     }
     try {
       await createProject();
-      useRouter().replace("/projects");
+      router.replace("/projects");
     } catch (e: unknown) {
       if (e instanceof Error) {
+        enqueueSnackbar(`${e?.message}`, { variant: "error" });
         enqueueSnackbar(`Error: ${e?.cause}`, { variant: "error" });
       }
+    } finally {
+      setOpenBackdrop(false);
     }
   }
 
@@ -141,7 +147,7 @@ export default function ProjectCreate() {
 
         <Backdrop
           sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
-          open={false}
+          open={openBackdrop}
           style={{ position: "absolute" }}
         >
           <CircularProgress color="inherit" sx={{ p: 1 }} />
