@@ -88,6 +88,11 @@ export default function Project() {
     watch: true
   });
 
+
+  if (project !== undefined && project.id === BigInt(0)) {
+    return <NotFound />;
+  }
+
   //let activeMilestone = buildMilestoneFromExecution(milestonesExecutions?.at(milestonesExecutions!!.length - 1));
   let activeMilestone = buildMilestoneFromExecution({
     projectId: BigInt(1),
@@ -98,49 +103,45 @@ export default function Project() {
     stage: 0
   });
 
-  // let calendarDates = project.milestonesDates;
-  let calendarDates = undefined;
-  if (project !== undefined) {
-    let endDate1 = BigInt(dayjs.unix(Number(project!!.startDate)).add(7, "day").unix());
-    let startDate2 = BigInt(dayjs.unix(Number(project!!.startDate)).add(2, "month").unix());
-    let endDate2 = BigInt(dayjs.unix(Number(startDate2)).add(7, "day").unix());
-    let endDate3 = BigInt(dayjs.unix(Number(project!!.endDate)).add(3, "month").unix());
-    let startDate3 = BigInt(dayjs.unix(Number(endDate3)).subtract(7, "day").unix());
-    calendarDates = project?.milestonesDates?.concat([
-      { startDate: project.startDate, endDate: endDate1 },
-      { startDate: startDate2, endDate: endDate2 },
-      { startDate: startDate3, endDate: endDate3 },
-      { startDate: project.endDate, endDate: project.endDate }
-    ]);
+  let nextMilestone2 = activeMilestone ? undefined : nextMilestone;
+
+  function buildMilestoneCardForFutureMilestones(milestoneDates: { startDate: bigint, endDate: bigint }): JSX.Element {
+    const calendarMilestone = buildMilestoneForFutureMilestones(milestoneDates);
+    if (calendarMilestone instanceof StartMilestone) {
+      return <StartMilestoneCard milestone={calendarMilestone} />
+    } else if (calendarMilestone instanceof EndMilestone) {
+      return <EndMilestoneCard milestone={calendarMilestone} />
+    } else if (calendarMilestone instanceof ReportMilestone) {
+      return <ReportMilestoneCard milestone={calendarMilestone}
+      />
+    } 
+    return <></>;
   }
 
-  if (project !== undefined && project.id === BigInt(0)) {
-    return <NotFound />;
-  }
-
-  function buildMilestoneFromNextMilestone(nextMilestone: { startDate: bigint, endDate: bigint }): Milestone {
-    if (nextMilestone.endDate === project?.endDate) {
-      return new EndMilestone(
-        dayjs.unix(Number(activeMilestone.startDate)),
-        dayjs.unix(Number(activeMilestone.endDate)),
-        getTokensToRelease(),
-        0,
-        false
-      );
-    } else if (nextMilestone.startDate === project?.startDate) {
+  function buildMilestoneForFutureMilestones(milestoneDates: { startDate: bigint, endDate: bigint }): Milestone {
+    if (project === undefined) { throw Error("No project provided"); }
+    if (milestoneDates.startDate == project.startDate) {
       return new StartMilestone(
-        dayjs.unix(Number(activeMilestone.startDate)),
+        dayjs.unix(Number(milestoneDates.startDate)),
         undefined,
         getTokensToRelease(),
-        project.stage == ProjectStage.STARTED ? 0 : -1,
+        -1,
+        false
+      );
+    } else if (milestoneDates.startDate == project.endDate) {
+      return new EndMilestone(
+        dayjs.unix(Number(milestoneDates.startDate)),
+        dayjs.unix(Number(milestoneDates.endDate)),
+        getTokensToRelease(),
+        -1,
         false
       );
     } else {
       return new ReportMilestone(
-        dayjs.unix(Number(activeMilestone.startDate)),
-        dayjs.unix(Number(activeMilestone.endDate)),
+        dayjs.unix(Number(milestoneDates.startDate)),
+        dayjs.unix(Number(milestoneDates.endDate)),
         getTokensToRelease(),
-        0,
+        -1,
         false,
         undefined
       );
@@ -153,7 +154,7 @@ export default function Project() {
         dayjs.unix(Number(activeMilestone.startDate)),
         dayjs.unix(Number(activeMilestone.endDate)),
         getTokensToRelease(),
-        activeMilestone.stage + 1,
+        activeMilestone.stage,
         false
       );
     } else if (activeMilestone.startDate === project?.startDate) {
@@ -161,7 +162,7 @@ export default function Project() {
         dayjs.unix(Number(activeMilestone.startDate)),
         undefined,
         getTokensToRelease(),
-        activeMilestone.stage + 1,
+        activeMilestone.stage,
         false
       );
     } else {
@@ -178,6 +179,9 @@ export default function Project() {
 
   function getTokensToRelease(): bigint {
     if (project === undefined) { return BigInt(0); }
+    if (project.stage == ProjectStage.FUNDING) {
+      return (project.goal / project.releaseMilestonesQuantity).asTokenStandardUnit()
+    }
     return (project.funded / project.releaseMilestonesQuantity).asTokenStandardUnit();
   }
 
@@ -397,23 +401,19 @@ export default function Project() {
                       }
                     </Stack>
                   }
-                  <Typography
-                    component="h5"
-                    variant="h5"
-                    fontWeight="fontWeightBold"
-                    sx={{ pt: 1 }}
-                  >
-                    Next milestone
-                  </Typography>
-                  <ReportMilestoneCard milestone={{
-                    startDate: dayjs.unix(Number(project.startDate)).subtract(14, "day"),
-                    endDate: dayjs.unix(Number(project.startDate)),
-                    tokensToRelease: getTokensToRelease(),
-                    activeStep: 2,
-                    isOwnerView: false,
-                    votingResults: makeVotingResults()
-                  }}
-                  />
+                  {nextMilestone2 &&
+                    <Stack direction="column" spacing={2}>
+                      <Typography
+                        component="h5"
+                        variant="h5"
+                        fontWeight="fontWeightBold"
+                        sx={{ pt: 1 }}
+                      >
+                        Next milestone
+                      </Typography>
+                      {buildMilestoneCardForFutureMilestones(nextMilestone2)}
+                    </Stack>
+                  }
                   <Typography
                     component="h5"
                     variant="h5"
@@ -423,34 +423,8 @@ export default function Project() {
                     Milestones calendar
                   </Typography>
                   <Stack spacing={2}>
-                    {calendarDates?.map((milestoneDates) => {
-                      if (milestoneDates.startDate == project.startDate) {
-                        return <StartMilestoneCard milestone={{
-                          startDate: dayjs.unix(Number(milestoneDates.startDate)),
-                          endDate: undefined,
-                          tokensToRelease: getTokensToRelease(),
-                          activeStep: -1,
-                          isOwnerView: false
-                        }} />
-                      } else if (milestoneDates.startDate == project.endDate) {
-                        return <EndMilestoneCard milestone={{
-                          startDate: dayjs.unix(Number(milestoneDates.startDate)),
-                          endDate: undefined,
-                          tokensToRelease: getTokensToRelease(),
-                          activeStep: -1,
-                          isOwnerView: false
-                        }} />
-                      } else {
-                        return <ReportMilestoneCard milestone={{
-                          startDate: dayjs.unix(Number(milestoneDates.startDate)),
-                          endDate: dayjs.unix(Number(milestoneDates.endDate)),
-                          tokensToRelease: (project.funded / project.releaseMilestonesQuantity).asTokenStandardUnit(),
-                          activeStep: -1,
-                          isOwnerView: false,
-                          votingResults: makeVotingResults()
-                        }}
-                        />
-                      }
+                    {project.milestonesDates.map((milestoneDates) => {
+                      return buildMilestoneCardForFutureMilestones(milestoneDates);
                     })}
                   </Stack>
                   <Typography
