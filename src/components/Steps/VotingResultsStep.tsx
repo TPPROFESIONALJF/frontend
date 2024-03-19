@@ -14,7 +14,7 @@ export function VotingResultsStep({ step, ...other }: VotingResultsStepProps) {
   } = {};
   labelProps.optional = <Typography variant="body2">{step?.caption}</Typography>
   return (
-    <Step key={step!!.name} {...stepProps} {...other} active={step.voteResults !== undefined}>
+    <Step key={step!!.name} {...stepProps} {...other} active={step.voteResults?.finalResult !== undefined}>
       <StepLabel {...labelProps}>({getDates(step)}) {step.name}</StepLabel>
       <StepContent>
           <VotingResults results={step.voteResults} />

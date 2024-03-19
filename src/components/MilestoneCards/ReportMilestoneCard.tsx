@@ -10,6 +10,7 @@ import { DocumentUploadStepData } from "@/domain/DocumentUploadStepData";
 import { EndMilestoneStepData } from "@/domain/EndMilestoneStepData";
 import { EndMilestoneStep } from "../Steps/EndMilestoneStep";
 import { buildMilestoneSteps } from "@/utils/stepsUtils";
+import dayjs from "dayjs";
 
 
 function getCardTitle(milestone: Milestone) {
@@ -24,14 +25,19 @@ function onVoteCast(voteFor: boolean) {
 }
 
 export function ReportMilestoneCard({ milestone }: ReportMilestoneProps) {
-  const [activeStep, setActiveStep] = useState(milestone.activeStep);
-
   const steps = [
     buildMilestoneSteps(milestone, 0, onVoteCast),
     buildMilestoneSteps(milestone, 1, onVoteCast),
     buildMilestoneSteps(milestone, 2, onVoteCast),
     buildMilestoneSteps(milestone, 3, onVoteCast)
   ];
+
+  const currActiveStep = milestone.startDate.isAfter(dayjs()) ? -1
+    : milestone.endDate?.isBefore(dayjs()) ? steps.length + 1
+      : steps.findLastIndex((step) => step.endDate?.isBefore(dayjs()));
+
+
+      const [activeStep, setActiveStep] = useState(currActiveStep);
 
   return (
     <>

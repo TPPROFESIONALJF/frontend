@@ -58,6 +58,11 @@ export enum ProjectStage {
   FINISHED = 3
 }
 
+export enum MilestoneStage {
+  VOTING = 0,
+  FINISHED = 1
+}
+
 const industries = [
   {
     id: '0', name: 'Software',
