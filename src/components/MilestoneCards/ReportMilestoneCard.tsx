@@ -1,6 +1,6 @@
-import { Milestone, MilestoneProps, ReportMilestoneProps } from "@/domain/Milestone";
+import { Milestone, ReportMilestoneProps } from "@/domain/Milestone";
 import { VotingInProgressMilestoneStepData } from "@/domain/VotingInProgressMilestoneStepData";
-import { Card, CardContent, Step, StepLabel, Stepper, Typography } from "@mui/material";
+import { Card, CardContent, Stepper, Typography } from "@mui/material";
 import { useState } from "react";
 import { DocumentUploadStep } from "../Steps/DocumentUploadStep";
 import { VotingInProgressStep } from "../Steps/VotingInProgressStep";
@@ -9,8 +9,7 @@ import { VotingResultsMilestoneStepData } from "@/domain/VotingResultsMilestoneS
 import { DocumentUploadStepData } from "@/domain/DocumentUploadStepData";
 import { EndMilestoneStepData } from "@/domain/EndMilestoneStepData";
 import { EndMilestoneStep } from "../Steps/EndMilestoneStep";
-import { buildMilestoneSteps } from "@/utils/stepsUtils";
-import dayjs from "dayjs";
+import { buildMilestoneSteps, getActiveStep } from "@/utils/stepsUtils";
 
 
 function getCardTitle(milestone: Milestone) {
@@ -32,12 +31,7 @@ export function ReportMilestoneCard({ milestone }: ReportMilestoneProps) {
     buildMilestoneSteps(milestone, 3, onVoteCast)
   ];
 
-  const currActiveStep = milestone.startDate.isAfter(dayjs()) ? -1
-    : milestone.endDate?.isBefore(dayjs()) ? steps.length + 1
-      : steps.findLastIndex((step) => step.endDate?.isBefore(dayjs()));
-
-
-      const [activeStep, setActiveStep] = useState(currActiveStep);
+  const [activeStep, setActiveStep] = useState(getActiveStep(milestone, steps));
 
   return (
     <>

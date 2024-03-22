@@ -1,12 +1,11 @@
 import { Card, CardContent, Step, StepLabel, Stepper, Typography } from "@mui/material";
 import { useState } from "react";
-import { getDates } from "@/utils/stepsUtils";
+import { getActiveStep, getDates } from "@/utils/stepsUtils";
 import { MilestoneStepData } from "@/domain/MilestoneStepData";
 import { MilestoneProps } from "@/domain/Milestone";
+import dayjs from "dayjs";
 
 export function EndMilestoneCard({ milestone }: MilestoneProps) {
-  const [activeStep, setActiveStep] = useState(milestone.activeStep);
-
   const steps = [
     new MilestoneStepData(
       "Project revenues presentation",
@@ -23,6 +22,7 @@ export function EndMilestoneCard({ milestone }: MilestoneProps) {
       milestone.isOwnerView
     )
   ];
+  const [activeStep, setActiveStep] = useState(getActiveStep(milestone, steps));
 
   return (
     <>

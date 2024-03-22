@@ -4,6 +4,7 @@ import { Milestone } from "@/domain/Milestone";
 import { MilestoneStepData } from "@/domain/MilestoneStepData";
 import { VotingInProgressMilestoneStepData } from "@/domain/VotingInProgressMilestoneStepData";
 import { VotingResultsMilestoneStepData } from "@/domain/VotingResultsMilestoneStepData";
+import dayjs from "dayjs";
 
 export function getDates(step: MilestoneStepData) {
   return step.endDate
@@ -39,4 +40,11 @@ export function buildMilestoneSteps(milestone: Milestone, stepNumber: number, on
   } else {
     return new MilestoneStepData("DEFAULT", startDate, startDate, "", milestone.isOwnerView);
   }
+}
+
+export function getActiveStep(milestone: Milestone, steps: MilestoneStepData[]): number {
+  const now = dayjs();
+  return milestone.startDate.isAfter(now) ? -1
+    : milestone.endDate?.isBefore(now) ? steps.length + 1
+      : steps.findLastIndex((step) => step.endDate?.isBefore(now));
 }

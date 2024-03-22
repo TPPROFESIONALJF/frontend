@@ -1,21 +1,24 @@
 import { Card, CardContent, Step, StepLabel, Stepper, Typography } from "@mui/material";
 import { useState } from "react";
-import { getDates } from "@/utils/stepsUtils";
+import { getActiveStep, getDates } from "@/utils/stepsUtils";
 import { MilestoneStepData } from "@/domain/MilestoneStepData";
 import { MilestoneProps } from "@/domain/Milestone";
 
 export function StartMilestoneCard({ milestone }: MilestoneProps) {
-  const [activeStep, setActiveStep] = useState(milestone.activeStep);
 
   const steps = [
     new MilestoneStepData(
       "Funding release",
       milestone.startDate,
       undefined,
-      milestone.tokensToRelease.toString() + ((activeStep <= 0) ? " tokens to release" : " tokens released"),
+      milestone.tokensToRelease.toString(),
       milestone.isOwnerView
     )
   ];
+
+  const [activeStep, setActiveStep] = useState(getActiveStep(milestone, steps));
+
+  steps[0].caption += (activeStep <= 0) ? " tokens to release" : " tokens released";
 
   return (
     <>
