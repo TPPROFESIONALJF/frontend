@@ -92,15 +92,17 @@ export default function Project() {
     return <NotFound />;
   }
 
-  //let activeMilestone = buildMilestoneFromExecution(milestonesExecutions?.at(milestonesExecutions!!.length - 1));
-  let activeMilestone = buildMilestoneFromExecution({
+  let activeMilestone = buildMilestoneForMilestoneExecution(
+    milestonesExecutions?.at(milestonesExecutions!!.length - 1) as MilestoneExecution
+  );
+  /*let activeMilestone = buildMilestoneForMilestoneExecution({
     projectId: BigInt(1),
     dcfScore: BigInt(0),
     proposalId: BigInt(0),
     startDate: BigInt(dayjs().unix()),
     endDate: project?.endDate ?? BigInt(dayjs().add(7, "day").unix()),
     stage: 0
-  });
+  });*/
 
   let nextMilestone2 = activeMilestone ? undefined : nextMilestone;
 
@@ -118,9 +120,21 @@ export default function Project() {
     return <></>;
   }
 
+  function buildMilestoneCardForFutureMilestones(milestoneDates: { startDate: bigint, endDate: bigint }): JSX.Element {
+    const calendarMilestone = buildMilestoneForFutureMilestones(milestoneDates);
+    if (calendarMilestone instanceof StartMilestone) {
+      return <StartMilestoneCard milestone={calendarMilestone} />
+    } else if (calendarMilestone instanceof EndMilestone) {
+      return <EndMilestoneCard milestone={calendarMilestone} />
+    } else if (calendarMilestone instanceof ReportMilestone) {
+      return <ReportMilestoneCard milestone={calendarMilestone}
+      />
+    }
+    return <></>;
+  }
+
   function buildMilestoneForMilestoneExecution(execution: MilestoneExecution): Milestone {
-    if (project === undefined) { throw Error("No project provided"); }
-    if (execution.startDate == project.startDate) {
+    if (execution.startDate == project?.startDate) {
       return new StartMilestone(
         dayjs.unix(Number(execution.startDate)),
         undefined,
@@ -128,7 +142,7 @@ export default function Project() {
         execution.stage == MilestoneStage.FINISHED ? 99 : -1,
         false
       );
-    } else if (execution.startDate == project.endDate) {
+    } else if (execution.startDate == project?.endDate) {
       return new EndMilestone(
         dayjs.unix(Number(execution.startDate)),
         dayjs.unix(Number(execution.endDate)),
@@ -146,19 +160,6 @@ export default function Project() {
         getVotingResults(execution.proposalId)
       );
     }
-  }
-
-  function buildMilestoneCardForFutureMilestones(milestoneDates: { startDate: bigint, endDate: bigint }): JSX.Element {
-    const calendarMilestone = buildMilestoneForFutureMilestones(milestoneDates);
-    if (calendarMilestone instanceof StartMilestone) {
-      return <StartMilestoneCard milestone={calendarMilestone} />
-    } else if (calendarMilestone instanceof EndMilestone) {
-      return <EndMilestoneCard milestone={calendarMilestone} />
-    } else if (calendarMilestone instanceof ReportMilestone) {
-      return <ReportMilestoneCard milestone={calendarMilestone}
-      />
-    }
-    return <></>;
   }
 
   function buildMilestoneForFutureMilestones(milestoneDates: { startDate: bigint, endDate: bigint }): Milestone {
@@ -185,35 +186,6 @@ export default function Project() {
         dayjs.unix(Number(milestoneDates.endDate)),
         getTokensToRelease(),
         -1,
-        false,
-        undefined
-      );
-    }
-  }
-
-  function buildMilestoneFromExecution(activeMilestone: MilestoneExecution): Milestone {
-    if (activeMilestone.endDate === project?.endDate) {
-      return new EndMilestone(
-        dayjs.unix(Number(activeMilestone.startDate)),
-        dayjs.unix(Number(activeMilestone.endDate)),
-        getTokensToRelease(),
-        activeMilestone.stage,
-        false
-      );
-    } else if (activeMilestone.startDate === project?.startDate) {
-      return new StartMilestone(
-        dayjs.unix(Number(activeMilestone.startDate)),
-        undefined,
-        getTokensToRelease(),
-        activeMilestone.stage,
-        false
-      );
-    } else {
-      return new ReportMilestone(
-        dayjs.unix(Number(activeMilestone.startDate)),
-        dayjs.unix(Number(activeMilestone.endDate)),
-        getTokensToRelease(),
-        0,
         false,
         undefined
       );
