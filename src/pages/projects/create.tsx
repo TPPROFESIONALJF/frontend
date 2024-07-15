@@ -107,8 +107,9 @@ export default function ProjectCreate() {
   }
 
   async function createProposal() {
+    /*
     const { request: config } = await prepareWriteContract({
-      address: ContractAddresses.gov as `0x${string}`,
+      address: ContractAddresses.governorAddress as `0x${string}`,
       abi: fundingManagerABI,
       functionName: 'create',
       args: [
@@ -122,7 +123,7 @@ export default function ProjectCreate() {
     });
 
     const { hash: createProjectHash } = await writeContract(config);
-    await waitForTransaction({ hash: createProjectHash });
+    await waitForTransaction({ hash: createProjectHash });*/
   }
 
   async function handleSubmit(e: FormEvent) {
