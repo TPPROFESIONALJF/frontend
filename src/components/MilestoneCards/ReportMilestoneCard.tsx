@@ -11,7 +11,6 @@ import { EndMilestoneStepData } from "@/domain/EndMilestoneStepData";
 import { EndMilestoneStep } from "../Steps/EndMilestoneStep";
 import { buildMilestoneSteps, getActiveStep } from "@/utils/stepsUtils";
 
-
 function getCardTitle(milestone: Milestone) {
   return milestone.endDate
     ? `${milestone.startDate.format('DD/MM/YYYY')} - ${milestone.endDate.format('DD/MM/YYYY')}`
@@ -25,10 +24,10 @@ function onVoteCast(voteFor: boolean) {
 
 export function ReportMilestoneCard({ milestone }: ReportMilestoneProps) {
   const steps = [
-    buildMilestoneSteps(milestone, 0, onVoteCast),
-    buildMilestoneSteps(milestone, 1, onVoteCast),
-    buildMilestoneSteps(milestone, 2, onVoteCast),
-    buildMilestoneSteps(milestone, 3, onVoteCast)
+    buildMilestoneSteps(milestone, 0, onVoteCast, milestone.onDocumentsUpload),
+    buildMilestoneSteps(milestone, 1, onVoteCast, milestone.onDocumentsUpload),
+    buildMilestoneSteps(milestone, 2, onVoteCast, milestone.onDocumentsUpload),
+    buildMilestoneSteps(milestone, 3, onVoteCast, milestone.onDocumentsUpload)
   ];
 
   const [activeStep, setActiveStep] = useState(getActiveStep(milestone, steps));

@@ -2,6 +2,7 @@ import { Dayjs } from "dayjs";
 import { VotingResult } from "./VotingResult";
 
 export class Milestone {
+  projectId: bigint;
   startDate: Dayjs;
   endDate: Dayjs | undefined;
   tokensToRelease: bigint;
@@ -9,12 +10,14 @@ export class Milestone {
   isOwnerView: boolean;
 
   constructor(
+    _projectId: bigint,
     _startDate: Dayjs,
     _endDate: Dayjs | undefined,
     _tokensToRelease: bigint,
     _activeStep: number,
     _isOwnerView: boolean
   ) {
+    this.projectId = _projectId;
     this.startDate = _startDate;
     this.endDate = _endDate;
     this.tokensToRelease = _tokensToRelease;
@@ -36,17 +39,21 @@ export interface ReportMilestoneProps {
 }
 
 export class ReportMilestone extends Milestone {
+  onDocumentsUpload: () => void;
   votingResults: VotingResult | undefined;
 
   constructor(
+    _projectId: bigint,
     _startDate: Dayjs,
     _endDate: Dayjs | undefined,
     _tokensToRelease: bigint,
     _activeStep: number,
     _isOwnerView: boolean,
-    _votingResults: VotingResult | undefined
+    _votingResults: VotingResult | undefined,
+    _onDocumentsUpload: () => void
   ) {
-    super(_startDate, _endDate, _tokensToRelease, _activeStep, _isOwnerView);
+    super(_projectId, _startDate, _endDate, _tokensToRelease, _activeStep, _isOwnerView);
     this.votingResults = _votingResults;
+    this.onDocumentsUpload = _onDocumentsUpload;
   }
 }

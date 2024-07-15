@@ -10,6 +10,11 @@ export const fundingManagerABI = [
         "internalType": "address",
         "name": "_dcfCalculatorAddr",
         "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_governor",
+        "type": "address"
       }
     ],
     "stateMutability": "nonpayable",
@@ -111,6 +116,19 @@ export const fundingManagerABI = [
     "inputs": [
       {
         "internalType": "uint256",
+        "name": "newCheckInterval",
+        "type": "uint256"
+      }
+    ],
+    "name": "changeMilestoneCheckInterval",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
         "name": "newMinTime",
         "type": "uint256"
       }
@@ -175,24 +193,21 @@ export const fundingManagerABI = [
         "internalType": "uint256[]",
         "name": "milestonesDates",
         "type": "uint256[]"
+      },
+      {
+        "internalType": "int256[5]",
+        "name": "_cashFlows",
+        "type": "int256[5]"
+      },
+      {
+        "internalType": "SD59x18",
+        "name": "_ebitda",
+        "type": "int256"
       }
     ],
     "name": "create",
     "outputs": [],
     "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "dcfCalculator",
-    "outputs": [
-      {
-        "internalType": "contract IDCFCalculator",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -278,11 +293,6 @@ export const fundingManagerABI = [
             "internalType": "uint256",
             "name": "projectId",
             "type": "uint256"
-          },
-          {
-            "internalType": "int256",
-            "name": "dcfScore",
-            "type": "int256"
           },
           {
             "internalType": "uint256",
@@ -427,6 +437,11 @@ export const fundingManagerABI = [
             "internalType": "uint256",
             "name": "releaseMilestonesQuantity",
             "type": "uint256"
+          },
+          {
+            "internalType": "enum Gauge",
+            "name": "evaluation",
+            "type": "uint8"
           }
         ],
         "internalType": "struct FundingManager.Project",
@@ -514,6 +529,11 @@ export const fundingManagerABI = [
             "internalType": "uint256",
             "name": "releaseMilestonesQuantity",
             "type": "uint256"
+          },
+          {
+            "internalType": "enum Gauge",
+            "name": "evaluation",
+            "type": "uint8"
           }
         ],
         "internalType": "struct FundingManager.Project[]",
@@ -585,11 +605,6 @@ export const fundingManagerABI = [
         "internalType": "uint256",
         "name": "projectId",
         "type": "uint256"
-      },
-      {
-        "internalType": "int256",
-        "name": "dcfScore",
-        "type": "int256"
       },
       {
         "internalType": "uint256",
@@ -742,6 +757,11 @@ export const fundingManagerABI = [
         "internalType": "uint256",
         "name": "releaseMilestonesQuantity",
         "type": "uint256"
+      },
+      {
+        "internalType": "enum Gauge",
+        "name": "evaluation",
+        "type": "uint8"
       }
     ],
     "stateMutability": "view",
@@ -776,19 +796,6 @@ export const fundingManagerABI = [
     "name": "renounceOwnership",
     "outputs": [],
     "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "token",
-    "outputs": [
-      {
-        "internalType": "contract ERC20",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
     "type": "function"
   },
   {

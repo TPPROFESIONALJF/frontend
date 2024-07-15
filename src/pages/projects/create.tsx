@@ -63,6 +63,8 @@ export default function ProjectCreate() {
   const [goal, setGoal] = useState<bigint | null>(null);
   const [milestoneSpan, setMilestoneSpan] = useState<number>(3);
   const [openBackdrop, setOpenBackdrop] = useState(false);
+  const [cashFlows, setCashFlows] = useState("");
+  const [ebitda, setEbitda] = useState(0);
   const router = useRouter();
 
   const { data: minGoal } = useContractRead({
@@ -83,6 +85,7 @@ export default function ProjectCreate() {
   }
 
   async function createProject() {
+    let splittedCashFlows = cashFlows.split(",").map(cashFlow => BigInt(parseFloat(cashFlow)));
     const { request: config } = await prepareWriteContract({
       address: ContractAddresses.fundingManagerAddress as `0x${string}`,
       abi: fundingManagerABI,
@@ -93,7 +96,9 @@ export default function ProjectCreate() {
         industrie!!,
         BigInt(startDate?.startOf("month").unix() ?? dayjs().unix()),
         BigInt(startDate?.startOf("month").add(duration, durationUnit).unix() ?? dayjs().unix()),
-        calculateMilestonesDates()
+        calculateMilestonesDates(),
+        splittedCashFlows as [bigint, bigint, bigint, bigint, bigint],
+        ebitda.asTokenSmallestUnit()
       ]
     });
 
@@ -106,10 +111,17 @@ export default function ProjectCreate() {
     setOpenBackdrop(true);
     if (milestoneSpan > duration) {
       enqueueSnackbar("Error: Project duration should be greater than milestones span", { variant: "error" });
+      setOpenBackdrop(false);
       return;
     }
     if (goal != null && goal < minGoal!!.asTokenStandardUnit()) {
       enqueueSnackbar(`Error: Goal should be at least ${minGoal?.asTokenStandardUnit()} tokens`, { variant: "error" });
+      setOpenBackdrop(false);
+      return;
+    }
+    if (cashFlows.split(",").length != 5) {
+      enqueueSnackbar("Error: You must set 5 values for cash flow", { variant: "error" });
+      setOpenBackdrop(false);
       return;
     }
     try {
@@ -117,6 +129,7 @@ export default function ProjectCreate() {
       router.replace("/projects");
     } catch (e: unknown) {
       if (e instanceof Error) {
+        console.log(e?.message);
         enqueueSnackbar(`${e?.message}`, { variant: "error" });
         enqueueSnackbar(`Error: ${e?.cause}`, { variant: "error" });
       }
@@ -237,6 +250,26 @@ export default function ProjectCreate() {
                     {option.label}
                   </MenuItem>
                 ))}
+              </TextField>
+            </Grid>
+            <Grid item xs={12} md={12} lg={6}>
+              <TextField
+                label="Cash flows (separated by comma)"
+                onChange={(e) => setCashFlows(e.target.value)}
+                required
+                fullWidth
+                helperText="Cash flows for the next 5 years to execute DCF"
+              >
+              </TextField>
+            </Grid>
+            <Grid item xs={12} md={12} lg={6}>
+              <TextField
+                label="Ebitda"
+                onChange={(e) => setEbitda(parseFloat(e.target.value))}
+                required
+                fullWidth
+                helperText="Current year ebitda to execute DCF"
+              >
               </TextField>
             </Grid>
             <Grid item xs={0} lg={3} />

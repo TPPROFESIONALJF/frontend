@@ -12,13 +12,13 @@ export function getDates(step: MilestoneStepData) {
     : `${step.startDate.format('DD/MM/YYYY')}`
 }
 
-export function buildMilestoneSteps(milestone: Milestone, stepNumber: number, onVoteCast: (voteFor: boolean) => void): MilestoneStepData {
+export function buildMilestoneSteps(milestone: Milestone, stepNumber: number, onVoteCast: (voteFor: boolean) => void, onDocumentsUpload: () => void): MilestoneStepData {
   const startDate = milestone.startDate;
   const endDate = milestone.endDate;
   const diff = endDate?.diff(startDate, 'minute');
   const middleDate = endDate !== undefined ? startDate.add(diff!! / 2, "minute") : startDate;
   if (stepNumber == 0) {
-    return new DocumentUploadStepData("Report documents upload", startDate, middleDate, "", milestone.isOwnerView);
+    return new DocumentUploadStepData("Report documents upload", startDate, middleDate, "", milestone.isOwnerView, onDocumentsUpload);
   } else if (stepNumber == 1) {
     return new VotingInProgressMilestoneStepData("Voting period", middleDate, endDate, "", milestone.isOwnerView, false, true, milestone.votingResults, onVoteCast);
   } else if (stepNumber == 2) {
@@ -44,6 +44,16 @@ export function buildMilestoneSteps(milestone: Milestone, stepNumber: number, on
 
 export function getActiveStep(milestone: Milestone, steps: MilestoneStepData[]): number {
   const now = dayjs();
+  let lastIndexBeforeNow = steps.findLastIndex((step) => step.endDate?.isBefore(now));
+  if (milestone.startDate.isAfter(now)) {
+    return -1;
+  } else if (milestone.endDate?.isBefore(now)) {
+    return steps.length + 1;
+  } else if (lastIndexBeforeNow >= 0) {
+    return lastIndexBeforeNow;
+  } else {
+    return 0;
+  }
   return milestone.startDate.isAfter(now) ? -1
     : milestone.endDate?.isBefore(now) ? steps.length + 1
       : steps.findLastIndex((step) => step.endDate?.isBefore(now));

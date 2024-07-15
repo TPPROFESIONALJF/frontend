@@ -2,6 +2,8 @@ import { waitForTransaction, writeContract, prepareWriteContract } from '@wagmi/
 import ContractAddresses from "@/contracts/ContractAddresses.json";
 import { fundingManagerABI } from "@/contracts/FundingManager";
 import { dummyDAIABI } from "@/contracts/DummyDAI";
+import { dcfCalculatorABI } from '@/contracts/DCFCalculator';
+import { useContractRead } from 'wagmi';
 
 export async function increaseAllowance(investAmount: number) {
   const { request: increaseAllowanceConfig } = await prepareWriteContract({
@@ -45,6 +47,41 @@ export async function resetAllowance() {
   });
   const { hash: resetAllowanceHash } = await writeContract(resetAllowanceConfig);
   await waitForTransaction({ hash: resetAllowanceHash })
+}
+
+export async function setDCFCalculatorValues() {
+  const industry = industries[0].id;
+  let avgEvEbitda = BigInt(7.72 * 1e18);
+  /*const riskFree = 0.034.asTokenSmallestUnit();
+  const countryRisk = 0.02.asTokenSmallestUnit();
+  const DA = 0.29.asTokenSmallestUnit();
+  const incomeTaxRate = 0.3.asTokenSmallestUnit();
+  const unleveredBeta = 0.95.asTokenSmallestUnit();
+  const marketRiskPremium = 0.046.asTokenSmallestUnit();
+  const growthRate = 0.03.asTokenSmallestUnit();*/
+
+/*
+  const { request: setFunctionConfig } = await prepareWriteContract({
+    address: ContractAddresses.dcfCalculatorAddress as `0x${string}`,
+    abi: dcfCalculatorABI,
+    functionName: 'setAvgEvEbitda',
+    args: [
+      industry as unknown as number,
+      BigInt(avgEvEbitda as number) * BigInt(1e18)
+    ]
+  });
+  const { hash: setFunctionHash } = await writeContract(setFunctionConfig);
+  await waitForTransaction({ hash: setFunctionHash })*/
+
+/*
+  await dcfCalculator.setAvgEvEbitda(industry, avgEvEbitda);
+  await dcfCalculator.setUnleveredBeta(industry, unleveredBeta);
+  await dcfCalculator.setDA(industry, DA);
+  await dcfCalculator.setGrowthRate(industry, growthRate);
+  await dcfCalculator.setCountryRisk(countryRisk);
+  await dcfCalculator.setRiskFree(riskFree);
+  await dcfCalculator.setMarketRiskPremium(marketRiskPremium);
+  await dcfCalculator.setIncomeTaxRate(incomeTaxRate);*/
 }
 
 export function getIndustrieById(id: string) {

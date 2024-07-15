@@ -28,6 +28,7 @@ export default function Project() {
   const [open, setOpen] = useState(false);
   const [projectId, setProjectId] = useState(BigInt(-1));
   const [isInvesting, setIsInvesting] = useState(false);
+  const [isUploadingDocuments, setIsUploadingDocuments] = useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
   const { address } = useAccount();
@@ -80,7 +81,7 @@ export default function Project() {
     watch: true
   });
 
-  const { data: nextMilestone } = useContractRead({
+  let { data: nextMilestone } = useContractRead({
     address: ContractAddresses.fundingManagerAddress as `0x${string}`,
     abi: fundingManagerABI,
     functionName: 'getNextMilestone',
@@ -91,20 +92,17 @@ export default function Project() {
   if (project !== undefined && project.id === BigInt(0)) {
     return <NotFound />;
   }
+  
+  let activeMilestone = undefined;
+  if (milestonesExecutions?.at(milestonesExecutions!!.length - 1) != undefined) {
+    activeMilestone = buildMilestoneForMilestoneExecution(
+      milestonesExecutions?.at(milestonesExecutions!!.length - 1) as MilestoneExecution
+    );
+  }
 
-  let activeMilestone = buildMilestoneForMilestoneExecution(
-    milestonesExecutions?.at(milestonesExecutions!!.length - 1) as MilestoneExecution
-  );
-  /*let activeMilestone = buildMilestoneForMilestoneExecution({
-    projectId: BigInt(1),
-    dcfScore: BigInt(0),
-    proposalId: BigInt(0),
-    startDate: BigInt(dayjs().unix()),
-    endDate: project?.endDate ?? BigInt(dayjs().add(7, "day").unix()),
-    stage: 0
-  });*/
-
-  let nextMilestone2 = activeMilestone ? undefined : nextMilestone;
+  if (project?.stage == ProjectStage.FUNDING || activeMilestone != undefined) {
+    nextMilestone = undefined;
+  }
 
   let historyMilestones = milestonesExecutions?.filter((execution) => execution.stage == MilestoneStage.FINISHED);
 
@@ -136,6 +134,7 @@ export default function Project() {
   function buildMilestoneForMilestoneExecution(execution: MilestoneExecution): Milestone {
     if (execution.startDate == project?.startDate) {
       return new StartMilestone(
+        execution.projectId,
         dayjs.unix(Number(execution.startDate)),
         undefined,
         getTokensToRelease(),
@@ -144,6 +143,7 @@ export default function Project() {
       );
     } else if (execution.startDate == project?.endDate) {
       return new EndMilestone(
+        execution.projectId,
         dayjs.unix(Number(execution.startDate)),
         dayjs.unix(Number(execution.endDate)),
         getTokensToRelease(),
@@ -152,12 +152,14 @@ export default function Project() {
       );
     } else {
       return new ReportMilestone(
+        execution.projectId,
         dayjs.unix(Number(execution.startDate)),
         dayjs.unix(Number(execution.endDate)),
         getTokensToRelease(),
         execution.stage == MilestoneStage.FINISHED ? 99 : -1,
-        false,
-        getVotingResults(execution.proposalId)
+        true,
+        getVotingResults(execution.proposalId),
+        uplaodDocumentsAndEvaluateProject
       );
     }
   }
@@ -166,6 +168,7 @@ export default function Project() {
     if (project === undefined) { throw Error("No project provided"); }
     if (milestoneDates.startDate == project.startDate) {
       return new StartMilestone(
+        BigInt(-1),
         dayjs.unix(Number(milestoneDates.startDate)),
         undefined,
         getTokensToRelease(),
@@ -174,6 +177,7 @@ export default function Project() {
       );
     } else if (milestoneDates.endDate == project.endDate) {
       return new EndMilestone(
+        BigInt(-1),
         dayjs.unix(Number(milestoneDates.startDate)),
         dayjs.unix(Number(milestoneDates.endDate)),
         getTokensToRelease(),
@@ -182,12 +186,14 @@ export default function Project() {
       );
     } else {
       return new ReportMilestone(
+        BigInt(-1),
         dayjs.unix(Number(milestoneDates.startDate)),
         dayjs.unix(Number(milestoneDates.endDate)),
         getTokensToRelease(),
         -1,
         false,
-        undefined
+        undefined,
+        uplaodDocumentsAndEvaluateProject
       );
     }
   }
@@ -209,6 +215,33 @@ export default function Project() {
     return project
       ? Number(project.funded * BigInt(100) / project.goal)
       : 0;
+  }
+
+  function getProjectEvaluation(): string {
+    if (project?.evaluation == 0) {
+      return "DCF Evaluation: Low performance";
+    } else if (project?.evaluation == 1) {
+      return "DCF Evaluation: Average performance";
+    } else if (project?.evaluation == 2) {
+       return "DCF Evaluation: High performance";
+    } else {
+      return "DCF Evaluation: Not evaluated";
+    }
+  }
+
+  async function uplaodDocumentsAndEvaluateProject() {
+    try {
+      setIsUploadingDocuments(true);
+      // TODO: Upload documents?
+      setIsUploadingDocuments(false);
+      // TODO: Close modal
+      enqueueSnackbar("Your documents and evaluation have been uploaded successfully", { variant: "success" });
+    } catch (e) {
+      setIsUploadingDocuments(false);
+      if (e instanceof Error) {
+        enqueueSnackbar("Oops! Something went wrong when trying to process your evaluation: " + e.message, { variant: "error" });
+      }
+    }
   }
 
   async function invest() {
@@ -244,9 +277,9 @@ export default function Project() {
     }
   }
 
-  function getVotingResults(proposalId: bigint): VotingResult {
+  function getVotingResults(proposalId: bigint): VotingResult | undefined {
     //TODO: Replace with real voting results
-    return { forVotes: 0, againstVotes: 0, waitingVotes: 0, userVotedFor: true, finalResult: true };
+    return undefined; // { forVotes: 0, againstVotes: 0, waitingVotes: 0, userVotedFor: true, finalResult: true };
   }
 
   return (
@@ -276,6 +309,14 @@ export default function Project() {
         >
           <CircularProgress color="inherit" sx={{ p: 1 }} />
           Investing... <br />Please review your wallet to approve the transactions
+        </Backdrop>
+        <Backdrop
+          sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1000 }}
+          open={isUploadingDocuments}
+          style={{ position: "absolute" }}
+        >
+          <CircularProgress color="inherit" sx={{ p: 1 }} />
+          Uploading documents and calculating score... <br />Please review your wallet to approve the transaction
         </Backdrop>
         {project !== undefined &&
           <Stack spacing={4}>
@@ -324,6 +365,23 @@ export default function Project() {
                       }}>
                       <CardContent>
                         <Stack direction="column" spacing={2}>
+                        <Stack
+                            direction="row"
+                            spacing={1}
+                            alignItems="center"
+                            justifyContent="center">
+                            <Image
+                              src="/images/evaluation.png"
+                              alt="Evaluation Logo"
+                              width="0"
+                              height="0"
+                              sizes="100vw"
+                              style={{ height: 'auto', width: '36px' }}
+                            />
+                            <Typography variant="body1">
+                              {getProjectEvaluation()}
+                            </Typography>
+                          </Stack>
                           <Stack
                             direction="row"
                             spacing={1}
@@ -417,7 +475,7 @@ export default function Project() {
                       }
                     </Stack>
                   }
-                  {nextMilestone2 &&
+                  {nextMilestone &&
                     <Stack direction="column" spacing={2}>
                       <Typography
                         component="h5"
@@ -427,7 +485,7 @@ export default function Project() {
                       >
                         Next milestone
                       </Typography>
-                      {buildMilestoneCardForFutureMilestones(nextMilestone2)}
+                      {buildMilestoneCardForFutureMilestones(nextMilestone)}
                     </Stack>
                   }
                   <Typography
@@ -467,3 +525,22 @@ export default function Project() {
     </>
   );
 }
+
+/*ponele que lo hago a las 20:57 y pongo:
+- 20:57 - 21:00 --> tiempo de inversión, me logeo con otro user e invierto
+- start date --> 21:00 --> liberación de fondos inicial
+- end date --> 21:20
+- milestoneDates --> [endDate: 21:15]
+- milestoneCheckInterval: 5 minutes
+- minTimeBetweenMilestones: 1 minutes
+
+esto nos da:
+- start milestone: 21:00 - 21:00
+- middle milestone: 21:10 - 21:15
+	- Upload documents period 21:10 - 21:12:30
+	- Voting period 21:12:30 - 21:15
+- end milestone: 21:16 - 21:20
+
+
+Entonces necesito:
+- */
