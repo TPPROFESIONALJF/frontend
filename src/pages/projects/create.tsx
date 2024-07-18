@@ -106,19 +106,14 @@ export default function ProjectCreate() {
     await waitForTransaction({ hash: createProjectHash });
   }
 
-  async function createProposal() {
-    /*
+  async function createProposal() {/*
     const { request: config } = await prepareWriteContract({
-      address: ContractAddresses.governorAddress as `0x${string}`,
+      address: ContractAddresses.fundingManagerAddress as `0x${string}`,
       abi: fundingManagerABI,
-      functionName: 'create',
+      functionName: 'createProposal',
       args: [
-        goal?.asTokenSmallestUnit() ?? BigInt(-1),
-        name!!,
-        industrie!!,
-        BigInt(startDate?.startOf("month").unix() ?? dayjs().unix()),
-        BigInt(startDate?.startOf("month").add(duration, durationUnit).unix() ?? dayjs().unix()),
-        calculateMilestonesDates()
+          project.id,
+          project.milestone.id
       ]
     });
 

@@ -27,6 +27,7 @@ interface InvestModalProps {
 }
 
 export default function InvestModal({ props }: InvestModalProps) {
+  
   function onInvest() {
     if (props.investAmount <= 0 || !Number.isInteger(props.investAmount)) {
       alert("Please set an investment value greater than 0 without decimals");

@@ -92,7 +92,7 @@ export default function Project() {
   if (project !== undefined && project.id === BigInt(0)) {
     return <NotFound />;
   }
-  
+  //obtener del milestone execution el proposalId
   let activeMilestone = undefined;
   if (milestonesExecutions?.at(milestonesExecutions!!.length - 1) != undefined) {
     activeMilestone = buildMilestoneForMilestoneExecution(
@@ -132,7 +132,11 @@ export default function Project() {
   }
 
   function buildMilestoneForMilestoneExecution(execution: MilestoneExecution): Milestone {
+    console.log("execution.stage")
+    console.log(execution.stage)
+
     if (execution.startDate == project?.startDate) {
+      console.log("first step")
       return new StartMilestone(
         execution.projectId,
         dayjs.unix(Number(execution.startDate)),
@@ -142,6 +146,7 @@ export default function Project() {
         false
       );
     } else if (execution.startDate == project?.endDate) {
+      console.log("last step")
       return new EndMilestone(
         execution.projectId,
         dayjs.unix(Number(execution.startDate)),
@@ -151,6 +156,7 @@ export default function Project() {
         false
       );
     } else {
+      console.log("middle step")
       return new ReportMilestone(
         execution.projectId,
         dayjs.unix(Number(execution.startDate)),
@@ -158,7 +164,7 @@ export default function Project() {
         getTokensToRelease(),
         execution.stage == MilestoneStage.FINISHED ? 99 : -1,
         true,
-        getVotingResults(execution.proposalId),
+        getVotingResults(BigInt(2373614544523101485)),
         uplaodDocumentsAndEvaluateProject
       );
     }
@@ -279,7 +285,7 @@ export default function Project() {
 
   function getVotingResults(proposalId: bigint): VotingResult | undefined {
     //TODO: Replace with real voting results
-    return undefined; // { forVotes: 0, againstVotes: 0, waitingVotes: 0, userVotedFor: true, finalResult: true };
+    return  { forVotes: 2, againstVotes: 1, waitingVotes: 0, userVotedFor: true, finalResult: true };
   }
 
   return (
@@ -455,6 +461,7 @@ export default function Project() {
                 >
                   Milestones
                 </Typography>
+                <div>ver estado de la propuesta</div>
                 <Stack direction="column" spacing={2}>
                   {activeMilestone &&
                     <Stack direction="column" spacing={2}>

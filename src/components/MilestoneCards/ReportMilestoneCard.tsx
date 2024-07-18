@@ -10,6 +10,13 @@ import { DocumentUploadStepData } from "@/domain/DocumentUploadStepData";
 import { EndMilestoneStepData } from "@/domain/EndMilestoneStepData";
 import { EndMilestoneStep } from "../Steps/EndMilestoneStep";
 import { buildMilestoneSteps, getActiveStep } from "@/utils/stepsUtils";
+import { MilestoneExecution } from "@/domain/MilestoneExecution";
+import { fundingManagerABI } from "@/contracts/FundingManager";
+import ContractAddresses from "@/contracts/ContractAddresses.json";
+import { useContractRead } from 'wagmi';
+import { governorABI } from "@/contracts/Governor";
+
+const statuses = {1:'Pending', 2:'Active',3:'Canceled', 4:'Defeated', 5: 'Succeeded', 6:'Queued',7: 'Expired', 8:'Executed' };
 
 function getCardTitle(milestone: Milestone) {
   return milestone.endDate
@@ -17,12 +24,34 @@ function getCardTitle(milestone: Milestone) {
     : `${milestone.startDate.format('DD/MM/YYYY')}`
 }
 
-function onVoteCast(voteFor: boolean) {
-  // TODO: Add vote cast logic
-  console.log(voteFor);
+function onVoteCast(execution: MilestoneExecution) {
+  const { data: status} = useContractRead({
+    address: ContractAddresses.governorAddress as `0x${string}`,
+    abi: governorABI,
+    functionName: 'castVote',
+    args: [execution.proposalId, 0],
+    watch: true
+  });
+}
+
+function proposalStatus(milestone: Milestone) : String{
+  const { data: status} = useContractRead({
+    address: ContractAddresses.fundingManagerAddress as `0x${string}`,
+    abi: fundingManagerABI,
+    functionName: 'proposalStatus',
+    args: [milestone.projectId],
+    watch: true
+  });
+  console.log("status")
+  console.log(status);
+  if (status != undefined && status){
+    return statuses[status];
+  }
+  return "";
 }
 
 export function ReportMilestoneCard({ milestone }: ReportMilestoneProps) {
+
   const steps = [
     buildMilestoneSteps(milestone, 0, onVoteCast, milestone.onDocumentsUpload),
     buildMilestoneSteps(milestone, 1, onVoteCast, milestone.onDocumentsUpload),
