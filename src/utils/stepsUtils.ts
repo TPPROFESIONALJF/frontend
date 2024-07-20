@@ -52,7 +52,7 @@ export function getActiveStep(milestone: Milestone, steps: MilestoneStepData[]):
   let lastIndexBeforeNow = steps.findLastIndex((step) => step.endDate?.isBefore(now));
   if (milestone.startDate.isAfter(now)) {
     console.log("getActiveStep is -1")
-    return 0;
+    return 1;
   } else if (milestone.endDate?.isBefore(now)) {
     console.log("getActiveStep is milestone.endDate?.isBefore(now)")
     return steps.length + 1;

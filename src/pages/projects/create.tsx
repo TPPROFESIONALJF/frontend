@@ -84,6 +84,25 @@ export default function ProjectCreate() {
     return dates;
   }
 
+  async function createDemoProject() {
+    let splittedCashFlows = cashFlows.split(",").map(cashFlow => BigInt(parseFloat(cashFlow)));
+    const { request: config } = await prepareWriteContract({
+      address: ContractAddresses.fundingManagerAddress as `0x${string}`,
+      abi: fundingManagerABI,
+      functionName: 'createDemoProject',
+      args: [
+        goal?.asTokenSmallestUnit() ?? BigInt(-1),
+        name!!,
+        industrie!!,
+        splittedCashFlows as [bigint, bigint, bigint, bigint, bigint],
+        ebitda.asTokenSmallestUnit()
+      ]
+    });
+
+    const { hash: createProjectHash } = await writeContract(config);
+    await waitForTransaction({ hash: createProjectHash });
+  }
+
   async function createProject() {
     let splittedCashFlows = cashFlows.split(",").map(cashFlow => BigInt(parseFloat(cashFlow)));
     const { request: config } = await prepareWriteContract({
@@ -140,7 +159,8 @@ export default function ProjectCreate() {
       return;
     }
     try {
-      await createProject();
+      //await createProject();
+      await createDemoProject();
       router.replace("/projects");
     } catch (e: unknown) {
       if (e instanceof Error) {

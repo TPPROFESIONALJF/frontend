@@ -1,4 +1,4 @@
-import { VotingInProgressMilestoneStepData } from "@/domain/VotingInProgressMilestoneStep";
+import { VotingInProgressMilestoneStepData } from "@/domain/VotingInProgressMilestoneStepData";
 import { getDates } from "@/utils/stepsUtils";
 import { Button, Stack, Step, StepContent, StepLabel, Typography } from "@mui/material";
 import { VotingResults } from "./VotingResults";

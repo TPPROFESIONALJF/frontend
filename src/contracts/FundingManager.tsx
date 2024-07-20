@@ -198,9 +198,52 @@ export const fundingManagerABI = [
         "internalType": "uint256[]",
         "name": "milestonesDates",
         "type": "uint256[]"
+      },
+      {
+        "internalType": "int256[5]",
+        "name": "_cashFlows",
+        "type": "int256[5]"
+      },
+      {
+        "internalType": "SD59x18",
+        "name": "_ebitda",
+        "type": "int256"
       }
     ],
     "name": "create",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_goal",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "_name",
+        "type": "string"
+      },
+      {
+        "internalType": "enum Industrie",
+        "name": "_industrie",
+        "type": "uint8"
+      },
+      {
+        "internalType": "int256[5]",
+        "name": "_cashFlows",
+        "type": "int256[5]"
+      },
+      {
+        "internalType": "SD59x18",
+        "name": "_ebitda",
+        "type": "int256"
+      }
+    ],
+    "name": "createDemoProject",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -312,11 +355,6 @@ export const fundingManagerABI = [
             "internalType": "uint256",
             "name": "projectId",
             "type": "uint256"
-          },
-          {
-            "internalType": "int256",
-            "name": "dcfScore",
-            "type": "int256"
           },
           {
             "internalType": "uint256",
@@ -461,6 +499,11 @@ export const fundingManagerABI = [
             "internalType": "uint256",
             "name": "releaseMilestonesQuantity",
             "type": "uint256"
+          },
+          {
+            "internalType": "enum Gauge",
+            "name": "evaluation",
+            "type": "uint8"
           }
         ],
         "internalType": "struct FundingManager.Project",
@@ -548,6 +591,11 @@ export const fundingManagerABI = [
             "internalType": "uint256",
             "name": "releaseMilestonesQuantity",
             "type": "uint256"
+          },
+          {
+            "internalType": "enum Gauge",
+            "name": "evaluation",
+            "type": "uint8"
           }
         ],
         "internalType": "struct FundingManager.Project[]",
@@ -619,11 +667,6 @@ export const fundingManagerABI = [
         "internalType": "uint256",
         "name": "projectId",
         "type": "uint256"
-      },
-      {
-        "internalType": "int256",
-        "name": "dcfScore",
-        "type": "int256"
       },
       {
         "internalType": "uint256",
@@ -776,6 +819,11 @@ export const fundingManagerABI = [
         "internalType": "uint256",
         "name": "releaseMilestonesQuantity",
         "type": "uint256"
+      },
+      {
+        "internalType": "enum Gauge",
+        "name": "evaluation",
+        "type": "uint8"
       }
     ],
     "stateMutability": "view",
@@ -800,25 +848,6 @@ export const fundingManagerABI = [
         "internalType": "uint256",
         "name": "",
         "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "projectId",
-        "type": "uint256"
-      }
-    ],
-    "name": "proposalStatus",
-    "outputs": [
-      {
-        "internalType": "enum IGovernor.ProposalState",
-        "name": "",
-        "type": "uint8"
       }
     ],
     "stateMutability": "view",

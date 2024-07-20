@@ -198,7 +198,7 @@ export default function Project() {
         getTokensToRelease(),
         -1,
         false,
-        undefined,
+        getVotingResults(BigInt(2373614544523101485)),
         uplaodDocumentsAndEvaluateProject
       );
     }
