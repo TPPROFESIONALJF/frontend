@@ -1,7 +1,6 @@
 export interface VotingResult {
   forVotes: number;
   againstVotes: number;
-  waitingVotes: number;
-  userVotedFor: boolean;
+  abstainVotes: number;
   finalResult: boolean | undefined;
 }

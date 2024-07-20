@@ -10,13 +10,21 @@ import { DocumentUploadStepData } from "@/domain/DocumentUploadStepData";
 import { EndMilestoneStepData } from "@/domain/EndMilestoneStepData";
 import { EndMilestoneStep } from "../Steps/EndMilestoneStep";
 import { buildMilestoneSteps, getActiveStep } from "@/utils/stepsUtils";
-import { MilestoneExecution } from "@/domain/MilestoneExecution";
-import { fundingManagerABI } from "@/contracts/FundingManager";
 import ContractAddresses from "@/contracts/ContractAddresses.json";
-import { useContractRead } from 'wagmi';
+import { useContractRead, useContractWrite } from 'wagmi';
 import { governorABI } from "@/contracts/Governor";
 
-const statuses = {1:'Pending', 2:'Active',3:'Canceled', 4:'Defeated', 5: 'Succeeded', 6:'Queued',7: 'Expired', 8:'Executed' };
+const statuses = ["Pending",
+  , "Active",
+  , "Canceled",
+  , "Defeated",
+  , "Succeeded",
+  , "Queued",
+  , "Expired",
+  , "Executed"];
+
+
+export default statuses;
 
 function getCardTitle(milestone: Milestone) {
   return milestone.endDate
@@ -24,28 +32,27 @@ function getCardTitle(milestone: Milestone) {
     : `${milestone.startDate.format('DD/MM/YYYY')}`
 }
 
-function onVoteCast(execution: MilestoneExecution) {
-  const { data: status} = useContractRead({
+function onVoteCast(proposalId: bigint, voteFor: number) {
+  const { data: status} = useContractWrite({
     address: ContractAddresses.governorAddress as `0x${string}`,
     abi: governorABI,
     functionName: 'castVote',
-    args: [execution.proposalId, 0],
-    watch: true
+    args: [proposalId, voteFor]
   });
 }
 
-function proposalStatus(milestone: Milestone) : String{
+function proposalStatus(proposalId: bigint) : string{
   const { data: status} = useContractRead({
-    address: ContractAddresses.fundingManagerAddress as `0x${string}`,
-    abi: fundingManagerABI,
-    functionName: 'proposalStatus',
-    args: [milestone.projectId],
+    address: ContractAddresses.governorAddress as `0x${string}`,
+    abi: governorABI,
+    functionName: 'state',
+    args: [proposalId],
     watch: true
   });
   console.log("status")
   console.log(status);
   if (status != undefined && status){
-    return statuses[status];
+    return statuses[status] as string;
   }
   return "";
 }

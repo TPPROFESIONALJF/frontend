@@ -12,7 +12,7 @@ export function getDates(step: MilestoneStepData) {
     : `${step.startDate.format('DD/MM/YYYY')}`
 }
 
-export function buildMilestoneSteps(milestone: Milestone, stepNumber: number, onVoteCast: (voteFor: boolean) => void, onDocumentsUpload: () => void): MilestoneStepData {
+export function buildMilestoneSteps(milestone: Milestone, stepNumber: number, onVoteCast: (proposalId: bigint, voteFor: number) => void, onDocumentsUpload: () => void): MilestoneStepData {
   const startDate = milestone.startDate;
   const endDate = milestone.endDate;
   const diff = endDate?.diff(startDate, 'minute');
@@ -51,8 +51,8 @@ export function getActiveStep(milestone: Milestone, steps: MilestoneStepData[]):
   const now = dayjs();
   let lastIndexBeforeNow = steps.findLastIndex((step) => step.endDate?.isBefore(now));
   if (milestone.startDate.isAfter(now)) {
-    console.log("getActiveStep is -1")
-    return 1;
+    console.log("getActiveStep is -1");
+    return 2;
   } else if (milestone.endDate?.isBefore(now)) {
     console.log("getActiveStep is milestone.endDate?.isBefore(now)")
     return steps.length + 1;

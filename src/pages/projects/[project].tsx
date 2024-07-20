@@ -3,6 +3,7 @@ import Head from 'next/head';
 import { useRouter } from 'next/router'
 import { useContractRead, useAccount } from 'wagmi';
 import { fundingManagerABI } from "@/contracts/FundingManager";
+import { governorABI } from "@/contracts/Governor";
 import { dummyDAIABI } from "@/contracts/DummyDAI";
 import ContractAddresses from "@/contracts/ContractAddresses.json";
 import NotFound from './404';
@@ -21,6 +22,7 @@ import { VotingResult } from '@/domain/VotingResult';
 import { MilestoneExecution } from '@/domain/MilestoneExecution';
 import { EndMilestoneCard } from '@/components/MilestoneCards/EndMilestoneCard';
 import { EndMilestone, Milestone, ReportMilestone, StartMilestone } from '@/domain/Milestone';
+import statuses from '@/components/MilestoneCards/ReportMilestoneCard';
 
 export default function Project() {
   const [investAmount, setInvestAmount] = useState(0);
@@ -156,7 +158,7 @@ export default function Project() {
         false
       );
     } else {
-      console.log("middle step")
+      console.log("este deberia ser el posta")
       return new ReportMilestone(
         execution.projectId,
         dayjs.unix(Number(execution.startDate)),
@@ -164,8 +166,9 @@ export default function Project() {
         getTokensToRelease(),
         execution.stage == MilestoneStage.FINISHED ? 99 : -1,
         true,
-        getVotingResults(BigInt(2373614544523101485)),
-        uplaodDocumentsAndEvaluateProject
+        undefined,
+        uplaodDocumentsAndEvaluateProject,
+        execution.proposalId
       );
     }
   }
@@ -199,7 +202,8 @@ export default function Project() {
         -1,
         false,
         getVotingResults(BigInt(2373614544523101485)),
-        uplaodDocumentsAndEvaluateProject
+        uplaodDocumentsAndEvaluateProject,
+        BigInt(0)
       );
     }
   }
@@ -283,9 +287,39 @@ export default function Project() {
     }
   }
 
-  function getVotingResults(proposalId: bigint): VotingResult | undefined {
-    //TODO: Replace with real voting results
-    return  { forVotes: 2, againstVotes: 1, waitingVotes: 0, userVotedFor: true, finalResult: true };
+  function proposalStatus(proposalId: bigint) : string {
+    let { data: status} = useContractRead({
+      address: ContractAddresses.governorAddress as `0x${string}`,
+      abi: governorABI,
+      functionName: 'state',
+      args: [proposalId],
+      watch: true
+    });
+    console.log("status")
+    console.log(status);
+    if (status != undefined && status){
+      return statuses[status] as string;
+    }
+    return "";
+  }
+
+  function getVotingResults(proposalId: bigint) : VotingResult  | undefined {
+    const { data, error, isLoading } = useContractRead({
+      address: ContractAddresses.governorAddress as `0x${string}`,
+      abi: governorABI,
+      functionName: 'proposalVotes',
+      args: [proposalId],
+      watch: true
+    });
+    
+    let finalResult = false;
+
+    const { againstVotes, forVotes, abstainVotes } = data;
+
+    if (data != undefined){
+      finalResult = (forVotes+abstainVotes) >= forVotes;
+    }
+    return { forVotes: forVotes, againstVotes: againstVotes, abstainVotes: abstainVotes, finalResult: finalResult };
   }
 
   return (
