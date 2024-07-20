@@ -107,6 +107,7 @@ export default function Project() {
   }
 
   let historyMilestones = milestonesExecutions?.filter((execution) => execution.stage == MilestoneStage.FINISHED);
+  let votingResults = getVotingResults(BigInt(2373614544523101485));
 
   function buildMilestoneCardForHistory(execution: MilestoneExecution): JSX.Element {
     const calendarMilestone = buildMilestoneForMilestoneExecution(execution);
@@ -166,7 +167,7 @@ export default function Project() {
         getTokensToRelease(),
         execution.stage == MilestoneStage.FINISHED ? 99 : -1,
         true,
-        undefined,
+        votingResults,
         uplaodDocumentsAndEvaluateProject,
         execution.proposalId
       );
@@ -201,7 +202,7 @@ export default function Project() {
         getTokensToRelease(),
         -1,
         false,
-        getVotingResults(BigInt(2373614544523101485)),
+        votingResults,
         uplaodDocumentsAndEvaluateProject,
         BigInt(0)
       );
@@ -304,7 +305,7 @@ export default function Project() {
   }
 
   function getVotingResults(proposalId: bigint) : VotingResult  | undefined {
-    const { data, error, isLoading } = useContractRead({
+    const { data: results } = useContractRead({
       address: ContractAddresses.governorAddress as `0x${string}`,
       abi: governorABI,
       functionName: 'proposalVotes',
@@ -312,12 +313,28 @@ export default function Project() {
       watch: true
     });
     
+
+    console.log("votingResults: ", results);
+
+    const status = proposalStatus(proposalId);
+
     let finalResult = false;
 
-    const { againstVotes, forVotes, abstainVotes } = data;
+    if (status == statuses[4]){
+      finalResult = true;
+    }
 
-    if (data != undefined){
-      finalResult = (forVotes+abstainVotes) >= forVotes;
+    console.log("status :", status);
+    let forVotes = 0;
+    let againstVotes = 0;
+    let abstainVotes = 0;
+
+
+    if (results != undefined){
+      finalResult = (results[1]+results[2]) >= results[0];
+      forVotes = Number(results[1]);
+      againstVotes = Number(results[0]);
+      abstainVotes = Number(results[2]);
     }
     return { forVotes: forVotes, againstVotes: againstVotes, abstainVotes: abstainVotes, finalResult: finalResult };
   }
