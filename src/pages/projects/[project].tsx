@@ -158,7 +158,7 @@ export default function Project() {
         false
       );
     } else {
-      console.log("middle step")
+      console.log("este deberia ser el posta")
       return new ReportMilestone(
         execution.projectId,
         dayjs.unix(Number(execution.startDate)),
@@ -166,7 +166,7 @@ export default function Project() {
         getTokensToRelease(),
         execution.stage == MilestoneStage.FINISHED ? 99 : -1,
         true,
-        getVotingResults(BigInt(2373614544523101485)),
+        undefined,
         uplaodDocumentsAndEvaluateProject,
         execution.proposalId
       );
@@ -201,7 +201,7 @@ export default function Project() {
         getTokensToRelease(),
         -1,
         false,
-        undefined,
+        getVotingResults(BigInt(2373614544523101485)),
         uplaodDocumentsAndEvaluateProject,
         BigInt(0)
       );
@@ -287,8 +287,8 @@ export default function Project() {
     }
   }
 
-  function proposalStatus(proposalId: bigint) : string{
-    const { data: status} = useContractRead({
+  function proposalStatus(proposalId: bigint) : string {
+    let { data: status} = useContractRead({
       address: ContractAddresses.governorAddress as `0x${string}`,
       abi: governorABI,
       functionName: 'state',
@@ -303,16 +303,23 @@ export default function Project() {
     return "";
   }
 
-  function getVotingResults(proposalId: bigint): VotingResult | undefined {
-    /*const { data: result} = useContractRead({
+  function getVotingResults(proposalId: bigint) : VotingResult  | undefined {
+    const { data, error, isLoading } = useContractRead({
       address: ContractAddresses.governorAddress as `0x${string}`,
       abi: governorABI,
       functionName: 'proposalVotes',
       args: [proposalId],
       watch: true
-    });*/
+    });
+    
+    let finalResult = false;
 
-    return { forVotes: 2, againstVotes: 1, waitingVotes: 0, userVotedFor: true, finalResult: true };
+    const { againstVotes, forVotes, abstainVotes } = data;
+
+    if (data != undefined){
+      finalResult = (forVotes+abstainVotes) >= forVotes;
+    }
+    return { forVotes: forVotes, againstVotes: againstVotes, abstainVotes: abstainVotes, finalResult: finalResult };
   }
 
   return (

@@ -10,13 +10,21 @@ import { DocumentUploadStepData } from "@/domain/DocumentUploadStepData";
 import { EndMilestoneStepData } from "@/domain/EndMilestoneStepData";
 import { EndMilestoneStep } from "../Steps/EndMilestoneStep";
 import { buildMilestoneSteps, getActiveStep } from "@/utils/stepsUtils";
-import { MilestoneExecution } from "@/domain/MilestoneExecution";
-import { fundingManagerABI } from "@/contracts/FundingManager";
 import ContractAddresses from "@/contracts/ContractAddresses.json";
 import { useContractRead, useContractWrite } from 'wagmi';
 import { governorABI } from "@/contracts/Governor";
 
-const statuses = {1:'Pending', 2:'Active',3:'Canceled', 4:'Defeated', 5: 'Succeeded', 6:'Queued',7: 'Expired', 8:'Executed' };
+const statuses = ["Pending",
+  , "Active",
+  , "Canceled",
+  , "Defeated",
+  , "Succeeded",
+  , "Queued",
+  , "Expired",
+  , "Executed"];
+
+
+export default statuses;
 
 function getCardTitle(milestone: Milestone) {
   return milestone.endDate
@@ -33,18 +41,18 @@ function onVoteCast(proposalId: bigint, voteFor: number) {
   });
 }
 
-function proposalStatus(proposalId: bigint) : String{
+function proposalStatus(proposalId: bigint) : string{
   const { data: status} = useContractRead({
     address: ContractAddresses.governorAddress as `0x${string}`,
     abi: governorABI,
     functionName: 'state',
-    args: [milestone.projectId],
+    args: [proposalId],
     watch: true
   });
   console.log("status")
   console.log(status);
   if (status != undefined && status){
-    return statuses[status];
+    return statuses[status] as string;
   }
   return "";
 }

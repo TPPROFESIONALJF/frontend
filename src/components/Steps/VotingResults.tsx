@@ -15,10 +15,7 @@ export function VotingResults({ results }: VotingResultsProps) {
       <Typography variant="body2">
         Voting results: {results.forVotes} <Typography variant="body2" display="inline" color="success.main" fontWeight="bold">FOR</Typography>/
         {results.againstVotes} <Typography variant="body2" display="inline" color="error.main" fontWeight="bold">AGAINST</Typography>/
-        {results.waitingVotes} <Typography variant="body2" display="inline" fontWeight="bold">WAITING</Typography> (You voted {results.userVotedFor ?
-          <Typography variant="body2" display="inline" color="success.main" fontWeight="bold">FOR</Typography>
-          : <Typography variant="body2" display="inline" color="error.main" fontWeight="bold">AGAINST</Typography>
-        })
+        {results.abstainVotes} <Typography variant="body2" display="inline" fontWeight="bold">ABSTEIN</Typography> 
       </Typography>
       {results.finalResult != undefined &&
         <Typography variant="body2">

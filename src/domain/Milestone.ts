@@ -41,6 +41,7 @@ export interface ReportMilestoneProps {
 export class ReportMilestone extends Milestone {
   onDocumentsUpload: () => void;
   votingResults: VotingResult | undefined;
+  proposalId: bigint;
 
   constructor(
     _projectId: bigint,
@@ -50,10 +51,12 @@ export class ReportMilestone extends Milestone {
     _activeStep: number,
     _isOwnerView: boolean,
     _votingResults: VotingResult | undefined,
-    _onDocumentsUpload: () => void
+    _onDocumentsUpload: () => void,
+    _proposalId: bigint
   ) {
     super(_projectId, _startDate, _endDate, _tokensToRelease, _activeStep, _isOwnerView);
     this.votingResults = _votingResults;
     this.onDocumentsUpload = _onDocumentsUpload;
+    this.proposalId = _proposalId;
   }
 }
