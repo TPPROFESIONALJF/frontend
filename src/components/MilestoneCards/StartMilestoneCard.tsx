@@ -10,7 +10,7 @@ export function StartMilestoneCard({ milestone }: MilestoneProps) {
     new MilestoneStepData(
       "Funding release",
       milestone.startDate,
-      undefined,
+      milestone.startDate,
       milestone.tokensToRelease.toString(),
       milestone.isOwnerView
     )

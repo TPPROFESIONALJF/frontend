@@ -28,8 +28,8 @@ export default statuses;
 
 function getCardTitle(milestone: Milestone) {
   return milestone.endDate
-    ? `${milestone.startDate.format('DD/MM/YYYY')} - ${milestone.endDate.format('DD/MM/YYYY')}`
-    : `${milestone.startDate.format('DD/MM/YYYY')}`
+    ? `${milestone.startDate.format('DD/MM/YYYY HH:mm:ss')} - ${milestone.endDate.format('DD/MM/YYYY HH:mm:ss')}`
+    : `${milestone.startDate.format('DD/MM/YYYY HH:mm:ss')}`
 }
 
 function onVoteCast(proposalId: bigint, voteFor: number) {

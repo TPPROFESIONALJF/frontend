@@ -1,13 +1,13 @@
 import { Backdrop, Button, Card, CardContent, CardMedia, CircularProgress, Container, Grid, Stack, Typography, debounce } from '@mui/material';
 import Head from 'next/head';
 import { useRouter } from 'next/router'
-import { useContractRead, useAccount } from 'wagmi';
+import { useContractRead, useAccount, WagmiConfig } from 'wagmi';
 import { fundingManagerABI } from "@/contracts/FundingManager";
 import { governorABI } from "@/contracts/Governor";
 import { dummyDAIABI } from "@/contracts/DummyDAI";
 import ContractAddresses from "@/contracts/ContractAddresses.json";
 import NotFound from './404';
-import { MilestoneStage, ProjectStage, getIndustrieById, increaseAllowance, investOnProject, resetAllowance } from "@/utils/projectsUtils";
+import { MilestoneStage, ProjectStage, getIndustrieById, increaseAllowance, investOnProject, resetAllowance, triggerUpkeep } from "@/utils/projectsUtils";
 import Image from 'next/image';
 import LinearProgressWithLabel from '@/components/LinearProgressWithLabel';
 import InvestModal from '@/components/InvestModal';
@@ -23,6 +23,7 @@ import { MilestoneExecution } from '@/domain/MilestoneExecution';
 import { EndMilestoneCard } from '@/components/MilestoneCards/EndMilestoneCard';
 import { EndMilestone, Milestone, ReportMilestone, StartMilestone } from '@/domain/Milestone';
 import statuses from '@/components/MilestoneCards/ReportMilestoneCard';
+import { readContract } from 'viem/_types/actions/public/readContract';
 
 export default function Project() {
   const [investAmount, setInvestAmount] = useState(0);
@@ -33,6 +34,14 @@ export default function Project() {
   const [isUploadingDocuments, setIsUploadingDocuments] = useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
+  const triggerStartUpkeep = async() => {
+    await triggerUpkeep("0x01");
+    console.log("START UPKEEP TRIGGERED!");
+  };
+  const triggerEndUpkeep = async() => {
+    await triggerUpkeep("0x02");
+    console.log("END UPKEEP TRIGGERED!");
+  };
   const { address } = useAccount();
   const router = useRouter();
   const projectIdAsString = router.query.project;
@@ -94,20 +103,20 @@ export default function Project() {
   if (project !== undefined && project.id === BigInt(0)) {
     return <NotFound />;
   }
-  //obtener del milestone execution el proposalId
+
   let activeMilestone = undefined;
-  if (milestonesExecutions?.at(milestonesExecutions!!.length - 1) != undefined) {
+  let lastMilestoneExecution = milestonesExecutions?.at(milestonesExecutions!!.length - 1) as MilestoneExecution;
+  if (lastMilestoneExecution != undefined && lastMilestoneExecution.stage == 0) {
     activeMilestone = buildMilestoneForMilestoneExecution(
       milestonesExecutions?.at(milestonesExecutions!!.length - 1) as MilestoneExecution
     );
   }
 
-  if (project?.stage == ProjectStage.FUNDING || activeMilestone != undefined) {
+  if (project?.stage == ProjectStage.FUNDING || project?.stage == ProjectStage.FINISHED) {
     nextMilestone = undefined;
   }
 
   let historyMilestones = milestonesExecutions?.filter((execution) => execution.stage == MilestoneStage.FINISHED);
-  let votingResults = getVotingResults(BigInt(2373614544523101485));
 
   function buildMilestoneCardForHistory(execution: MilestoneExecution): JSX.Element {
     const calendarMilestone = buildMilestoneForMilestoneExecution(execution);
@@ -121,7 +130,7 @@ export default function Project() {
     return <></>;
   }
 
-  function buildMilestoneCardForFutureMilestones(milestoneDates: { startDate: bigint, endDate: bigint }): JSX.Element {
+  function buildMilestoneCardForFutureMilestones(milestoneDates: { startDate: bigint, endDate: bigint | undefined }): JSX.Element {
     const calendarMilestone = buildMilestoneForFutureMilestones(milestoneDates);
     if (calendarMilestone instanceof StartMilestone) {
       return <StartMilestoneCard milestone={calendarMilestone} />
@@ -135,46 +144,40 @@ export default function Project() {
   }
 
   function buildMilestoneForMilestoneExecution(execution: MilestoneExecution): Milestone {
-    console.log("execution.stage")
-    console.log(execution.stage)
-
     if (execution.startDate == project?.startDate) {
-      console.log("first step")
       return new StartMilestone(
         execution.projectId,
         dayjs.unix(Number(execution.startDate)),
         undefined,
         getTokensToRelease(),
-        execution.stage == MilestoneStage.FINISHED ? 99 : -1,
-        false
+        false,
+        project.stage > ProjectStage.FUNDING
       );
-    } else if (execution.startDate == project?.endDate) {
-      console.log("last step")
+    } else if (execution.endDate == project?.endDate) {
       return new EndMilestone(
         execution.projectId,
         dayjs.unix(Number(execution.startDate)),
         dayjs.unix(Number(execution.endDate)),
         getTokensToRelease(),
-        execution.stage == MilestoneStage.FINISHED ? 99 : -1,
-        false
+        false,
+        project.stage > ProjectStage.FUNDING
       );
     } else {
-      console.log("este deberia ser el posta")
       return new ReportMilestone(
         execution.projectId,
         dayjs.unix(Number(execution.startDate)),
         dayjs.unix(Number(execution.endDate)),
         getTokensToRelease(),
-        execution.stage == MilestoneStage.FINISHED ? 99 : -1,
-        true,
-        votingResults,
+        false,
+        project != undefined && project.stage > ProjectStage.FUNDING,
+        getVotingResults(execution.proposalId),
         uplaodDocumentsAndEvaluateProject,
         execution.proposalId
       );
     }
   }
 
-  function buildMilestoneForFutureMilestones(milestoneDates: { startDate: bigint, endDate: bigint }): Milestone {
+  function buildMilestoneForFutureMilestones(milestoneDates: { startDate: bigint, endDate: bigint | undefined }): Milestone {
     if (project === undefined) { throw Error("No project provided"); }
     if (milestoneDates.startDate == project.startDate) {
       return new StartMilestone(
@@ -182,7 +185,7 @@ export default function Project() {
         dayjs.unix(Number(milestoneDates.startDate)),
         undefined,
         getTokensToRelease(),
-        -1,
+        false,
         false
       );
     } else if (milestoneDates.endDate == project.endDate) {
@@ -191,7 +194,7 @@ export default function Project() {
         dayjs.unix(Number(milestoneDates.startDate)),
         dayjs.unix(Number(milestoneDates.endDate)),
         getTokensToRelease(),
-        -1,
+        false,
         false
       );
     } else {
@@ -200,9 +203,9 @@ export default function Project() {
         dayjs.unix(Number(milestoneDates.startDate)),
         dayjs.unix(Number(milestoneDates.endDate)),
         getTokensToRelease(),
-        -1,
         false,
-        votingResults,
+        false,
+        undefined,
         uplaodDocumentsAndEvaluateProject,
         BigInt(0)
       );
@@ -289,15 +292,13 @@ export default function Project() {
   }
 
   function proposalStatus(proposalId: bigint) : string {
-    let { data: status} = useContractRead({
+    let { data: status, error: error} = useContractRead({
       address: ContractAddresses.governorAddress as `0x${string}`,
       abi: governorABI,
       functionName: 'state',
       args: [proposalId],
       watch: true
     });
-    console.log("status")
-    console.log(status);
     if (status != undefined && status){
       return statuses[status] as string;
     }
@@ -305,6 +306,7 @@ export default function Project() {
   }
 
   function getVotingResults(proposalId: bigint) : VotingResult  | undefined {
+
     const { data: results } = useContractRead({
       address: ContractAddresses.governorAddress as `0x${string}`,
       abi: governorABI,
@@ -312,7 +314,6 @@ export default function Project() {
       args: [proposalId],
       watch: true
     });
-    
 
     console.log("votingResults: ", results);
 
@@ -328,7 +329,6 @@ export default function Project() {
     let forVotes = 0;
     let againstVotes = 0;
     let abstainVotes = 0;
-
 
     if (results != undefined){
       finalResult = (results[1]+results[2]) >= results[0];
@@ -503,6 +503,8 @@ export default function Project() {
             </Card>
             <Card sx={{ width: "100%", px: 4, py: 2 }}>
               <CardContent>
+                <Button onClick={triggerStartUpkeep}>Trigger start upkeep</Button>
+                <Button onClick={triggerEndUpkeep}>Trigger end upkeep</Button>
                 <Typography
                   component="h3"
                   variant="h3"
@@ -512,7 +514,6 @@ export default function Project() {
                 >
                   Milestones
                 </Typography>
-                <div>ver estado de la propuesta</div>
                 <Stack direction="column" spacing={2}>
                   {activeMilestone &&
                     <Stack direction="column" spacing={2}>
@@ -523,6 +524,9 @@ export default function Project() {
                       >
                         Active milestone
                       </Typography>
+                      {activeMilestone instanceof StartMilestone &&
+                        <StartMilestoneCard milestone={activeMilestone} />
+                      }
                       {activeMilestone instanceof ReportMilestone &&
                         <ReportMilestoneCard
                           milestone={activeMilestone as ReportMilestone}
@@ -546,19 +550,23 @@ export default function Project() {
                       {buildMilestoneCardForFutureMilestones(nextMilestone)}
                     </Stack>
                   }
-                  <Typography
-                    component="h5"
-                    variant="h5"
-                    fontWeight="fontWeightBold"
-                    sx={{ pt: 1 }}
-                  >
-                    Milestones calendar
-                  </Typography>
-                  <Stack spacing={2}>
-                    {project.milestonesDates.map((milestoneDates) => {
-                      return buildMilestoneCardForFutureMilestones(milestoneDates);
-                    })}
-                  </Stack>
+                  {project.milestonesDates.length > 0 &&
+                    <Stack direction="column" spacing={2}>
+                      <Typography
+                        component="h5"
+                        variant="h5"
+                        fontWeight="fontWeightBold"
+                        sx={{ pt: 1 }}
+                      >
+                        Milestones calendar
+                      </Typography>
+                      <Stack spacing={2}>
+                        {project.milestonesDates.map((milestoneDates) => {
+                          return buildMilestoneCardForFutureMilestones(milestoneDates);
+                        })}
+                      </Stack>
+                    </Stack>
+                  }
                   {historyMilestones && historyMilestones.length > 0 &&
                     <Stack direction="column" spacing={2}>
                       <Typography

@@ -6,23 +6,23 @@ export class Milestone {
   startDate: Dayjs;
   endDate: Dayjs | undefined;
   tokensToRelease: bigint;
-  activeStep: number;
   isOwnerView: boolean;
+  isActive: boolean;
 
   constructor(
     _projectId: bigint,
     _startDate: Dayjs,
     _endDate: Dayjs | undefined,
     _tokensToRelease: bigint,
-    _activeStep: number,
-    _isOwnerView: boolean
+    _isOwnerView: boolean,
+    _isActive: boolean
   ) {
     this.projectId = _projectId;
     this.startDate = _startDate;
     this.endDate = _endDate;
     this.tokensToRelease = _tokensToRelease;
-    this.activeStep = _activeStep;
     this.isOwnerView = _isOwnerView;
+    this.isActive = _isActive;
   }
 }
 
@@ -48,13 +48,13 @@ export class ReportMilestone extends Milestone {
     _startDate: Dayjs,
     _endDate: Dayjs | undefined,
     _tokensToRelease: bigint,
-    _activeStep: number,
     _isOwnerView: boolean,
+    _isActive: boolean,
     _votingResults: VotingResult | undefined,
     _onDocumentsUpload: () => void,
     _proposalId: bigint
   ) {
-    super(_projectId, _startDate, _endDate, _tokensToRelease, _activeStep, _isOwnerView);
+    super(_projectId, _startDate, _endDate, _tokensToRelease, _isOwnerView, _isActive);
     this.votingResults = _votingResults;
     this.onDocumentsUpload = _onDocumentsUpload;
     this.proposalId = _proposalId;

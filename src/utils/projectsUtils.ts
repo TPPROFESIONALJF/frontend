@@ -49,6 +49,23 @@ export async function resetAllowance() {
   await waitForTransaction({ hash: resetAllowanceHash })
 }
 
+export async function triggerUpkeep(calldata: string) {
+ // try {
+    const { request: upkeepConfig } = await prepareWriteContract({
+      address: ContractAddresses.fundingManagerAddress as `0x${string}`,
+      abi: fundingManagerABI,
+      functionName: 'performUpkeep',
+      args: [
+        calldata as `0x${string}`
+      ]
+    });
+    const { hash: upkeepHash } = await writeContract(upkeepConfig);
+    await waitForTransaction({ hash: upkeepHash })
+  //} catch (e) {
+   // console.log(e);
+ // }
+}
+
 export async function setDCFCalculatorValues() {
   const industry = industries[0].id;
   let avgEvEbitda = BigInt(7.72 * 1e18);
