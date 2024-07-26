@@ -170,7 +170,7 @@ export default function Project() {
         getTokensToRelease(),
         false,
         project != undefined && project.stage > ProjectStage.FUNDING,
-        getVotingResults(execution.proposalId),
+        undefined, //getVotingResults(execution.proposalId),
         uplaodDocumentsAndEvaluateProject,
         execution.proposalId
       );
@@ -222,7 +222,7 @@ export default function Project() {
 
   function getIndustrieName(): string {
     if (project === undefined) { return "N/A" }
-    return getIndustrieById(project!!.id.toString())!!.name;
+    return getIndustrieById(project!!.industrie.toString())!!.name;
   }
 
   function getProjectProgress(): number {
