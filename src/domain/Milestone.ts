@@ -1,5 +1,6 @@
 import { Dayjs } from "dayjs";
 import { VotingResult } from "./VotingResult";
+import { MilestoneStage } from "@/utils/projectsUtils";
 
 export class Milestone {
   projectId: bigint;
@@ -8,6 +9,7 @@ export class Milestone {
   tokensToRelease: bigint;
   isOwnerView: boolean;
   isActive: boolean;
+  stage: MilestoneStage;
 
   constructor(
     _projectId: bigint,
@@ -15,7 +17,8 @@ export class Milestone {
     _endDate: Dayjs | undefined,
     _tokensToRelease: bigint,
     _isOwnerView: boolean,
-    _isActive: boolean
+    _isActive: boolean,
+    _stage: number
   ) {
     this.projectId = _projectId;
     this.startDate = _startDate;
@@ -23,6 +26,7 @@ export class Milestone {
     this.tokensToRelease = _tokensToRelease;
     this.isOwnerView = _isOwnerView;
     this.isActive = _isActive;
+    this.stage = _stage;
   }
 }
 
@@ -50,11 +54,12 @@ export class ReportMilestone extends Milestone {
     _tokensToRelease: bigint,
     _isOwnerView: boolean,
     _isActive: boolean,
+    _stage: number,
     _votingResults: VotingResult | undefined,
     _onDocumentsUpload: () => void,
     _proposalId: bigint
   ) {
-    super(_projectId, _startDate, _endDate, _tokensToRelease, _isOwnerView, _isActive);
+    super(_projectId, _startDate, _endDate, _tokensToRelease, _isOwnerView, _isActive, _stage);
     this.votingResults = _votingResults;
     this.onDocumentsUpload = _onDocumentsUpload;
     this.proposalId = _proposalId;

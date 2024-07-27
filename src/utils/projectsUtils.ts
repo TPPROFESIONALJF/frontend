@@ -2,8 +2,6 @@ import { waitForTransaction, writeContract, prepareWriteContract } from '@wagmi/
 import ContractAddresses from "@/contracts/ContractAddresses.json";
 import { fundingManagerABI } from "@/contracts/FundingManager";
 import { dummyDAIABI } from "@/contracts/DummyDAI";
-import { dcfCalculatorABI } from '@/contracts/DCFCalculator';
-import { useContractRead } from 'wagmi';
 
 export async function increaseAllowance(investAmount: number) {
   const { request: increaseAllowanceConfig } = await prepareWriteContract({

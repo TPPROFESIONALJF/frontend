@@ -58,7 +58,6 @@ function proposalStatus(proposalId: bigint) : string{
 }
 
 export function ReportMilestoneCard({ milestone }: ReportMilestoneProps) {
-
   const steps = [
     buildMilestoneSteps(milestone, 0, onVoteCast, milestone.onDocumentsUpload),
     buildMilestoneSteps(milestone, 1, onVoteCast, milestone.onDocumentsUpload),

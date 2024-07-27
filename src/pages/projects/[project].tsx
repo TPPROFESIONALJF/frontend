@@ -23,7 +23,8 @@ import { MilestoneExecution } from '@/domain/MilestoneExecution';
 import { EndMilestoneCard } from '@/components/MilestoneCards/EndMilestoneCard';
 import { EndMilestone, Milestone, ReportMilestone, StartMilestone } from '@/domain/Milestone';
 import statuses from '@/components/MilestoneCards/ReportMilestoneCard';
-import { readContract } from 'viem/_types/actions/public/readContract';
+import { readContract } from '@wagmi/core';
+import { exec } from 'child_process';
 
 export default function Project() {
   const [investAmount, setInvestAmount] = useState(0);
@@ -32,15 +33,14 @@ export default function Project() {
   const [projectId, setProjectId] = useState(BigInt(-1));
   const [isInvesting, setIsInvesting] = useState(false);
   const [isUploadingDocuments, setIsUploadingDocuments] = useState(false);
+  const [executedMilestones, setExecutedMilestones] = useState<Milestone[] | undefined>(undefined);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
   const triggerStartUpkeep = async() => {
     await triggerUpkeep("0x01");
-    console.log("START UPKEEP TRIGGERED!");
   };
   const triggerEndUpkeep = async() => {
     await triggerUpkeep("0x02");
-    console.log("END UPKEEP TRIGGERED!");
   };
   const { address } = useAccount();
   const router = useRouter();
@@ -104,22 +104,21 @@ export default function Project() {
     return <NotFound />;
   }
 
+  buildExecutedMilestones();
+
   let activeMilestone = undefined;
-  let lastMilestoneExecution = milestonesExecutions?.at(milestonesExecutions!!.length - 1) as MilestoneExecution;
+  let lastMilestoneExecution = executedMilestones?.at(milestonesExecutions!!.length - 1) as Milestone;
   if (lastMilestoneExecution != undefined && lastMilestoneExecution.stage == 0) {
-    activeMilestone = buildMilestoneForMilestoneExecution(
-      milestonesExecutions?.at(milestonesExecutions!!.length - 1) as MilestoneExecution
-    );
+    activeMilestone = executedMilestones?.at(milestonesExecutions!!.length - 1);
   }
 
   if (project?.stage == ProjectStage.FUNDING || project?.stage == ProjectStage.FINISHED) {
     nextMilestone = undefined;
   }
 
-  let historyMilestones = milestonesExecutions?.filter((execution) => execution.stage == MilestoneStage.FINISHED);
+  let historyMilestones = executedMilestones?.filter((execution) => execution.stage == MilestoneStage.FINISHED);
 
-  function buildMilestoneCardForHistory(execution: MilestoneExecution): JSX.Element {
-    const calendarMilestone = buildMilestoneForMilestoneExecution(execution);
+  function buildMilestoneCardForHistory(calendarMilestone: Milestone): JSX.Element {
     if (calendarMilestone instanceof StartMilestone) {
       return <StartMilestoneCard milestone={calendarMilestone} />
     } else if (calendarMilestone instanceof EndMilestone) {
@@ -143,7 +142,21 @@ export default function Project() {
     return <></>;
   }
 
-  function buildMilestoneForMilestoneExecution(execution: MilestoneExecution): Milestone {
+  function buildExecutedMilestones() {
+    let milestones = milestonesExecutions?.map((execution) => {
+      let milestone = buildMilestoneForMilestoneExecution(execution);
+      return milestone;
+    });
+    if (milestones != undefined) {
+      Promise.all(milestones).then((values) => {
+        if (executedMilestones == undefined || executedMilestones != values)
+          console.log(executedMilestones);
+          setExecutedMilestones(values)
+        });
+    }
+  }
+
+  async function buildMilestoneForMilestoneExecution(execution: MilestoneExecution): Promise<Milestone> {
     if (execution.startDate == project?.startDate) {
       return new StartMilestone(
         execution.projectId,
@@ -151,7 +164,8 @@ export default function Project() {
         undefined,
         getTokensToRelease(),
         false,
-        project.stage > ProjectStage.FUNDING
+        project.stage > ProjectStage.FUNDING,
+        execution.stage
       );
     } else if (execution.endDate == project?.endDate) {
       return new EndMilestone(
@@ -160,7 +174,8 @@ export default function Project() {
         dayjs.unix(Number(execution.endDate)),
         getTokensToRelease(),
         false,
-        project.stage > ProjectStage.FUNDING
+        project.stage > ProjectStage.FUNDING,
+        execution.stage
       );
     } else {
       return new ReportMilestone(
@@ -170,7 +185,8 @@ export default function Project() {
         getTokensToRelease(),
         false,
         project != undefined && project.stage > ProjectStage.FUNDING,
-        undefined, //getVotingResults(execution.proposalId),
+        execution.stage,
+        await getVotingResults(execution.proposalId),
         uplaodDocumentsAndEvaluateProject,
         execution.proposalId
       );
@@ -186,7 +202,8 @@ export default function Project() {
         undefined,
         getTokensToRelease(),
         false,
-        false
+        false,
+        -1
       );
     } else if (milestoneDates.endDate == project.endDate) {
       return new EndMilestone(
@@ -195,7 +212,8 @@ export default function Project() {
         dayjs.unix(Number(milestoneDates.endDate)),
         getTokensToRelease(),
         false,
-        false
+        false,
+        -1
       );
     } else {
       return new ReportMilestone(
@@ -205,6 +223,7 @@ export default function Project() {
         getTokensToRelease(),
         false,
         false,
+        -1,
         undefined,
         uplaodDocumentsAndEvaluateProject,
         BigInt(0)
@@ -291,33 +310,34 @@ export default function Project() {
     }
   }
 
-  function proposalStatus(proposalId: bigint) : string {
-    let { data: status, error: error} = useContractRead({
+  async function proposalStatus(proposalId: bigint) : Promise<string> {
+    
+    const status = await readContract({
       address: ContractAddresses.governorAddress as `0x${string}`,
       abi: governorABI,
       functionName: 'state',
-      args: [proposalId],
-      watch: true
+      args: [proposalId]
     });
+
+    console.log(proposalId);
     if (status != undefined && status){
       return statuses[status] as string;
     }
     return "";
   }
 
-  function getVotingResults(proposalId: bigint) : VotingResult  | undefined {
+  async function getVotingResults(proposalId: bigint) : Promise<VotingResult | undefined> {
 
-    const { data: results } = useContractRead({
+    const results = await readContract({
       address: ContractAddresses.governorAddress as `0x${string}`,
       abi: governorABI,
       functionName: 'proposalVotes',
-      args: [proposalId],
-      watch: true
+      args: [proposalId]
     });
 
     console.log("votingResults: ", results);
 
-    const status = proposalStatus(proposalId);
+    const status = await proposalStatus(proposalId);
 
     let finalResult = false;
 
