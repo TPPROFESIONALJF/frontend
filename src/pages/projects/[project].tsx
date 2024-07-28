@@ -104,6 +104,8 @@ export default function Project() {
     return <NotFound />;
   }
 
+  let isOwnerView = address == project?.owner;
+
   buildExecutedMilestones();
 
   let activeMilestone = undefined;
@@ -149,8 +151,7 @@ export default function Project() {
     });
     if (milestones != undefined) {
       Promise.all(milestones).then((values) => {
-        if (executedMilestones == undefined || executedMilestones != values)
-          console.log(executedMilestones);
+        if (executedMilestones == undefined || executedMilestones.toString() != values.toString())
           setExecutedMilestones(values)
         });
     }
@@ -163,7 +164,7 @@ export default function Project() {
         dayjs.unix(Number(execution.startDate)),
         undefined,
         getTokensToRelease(),
-        false,
+        isOwnerView,
         project.stage > ProjectStage.FUNDING,
         execution.stage
       );
@@ -173,7 +174,7 @@ export default function Project() {
         dayjs.unix(Number(execution.startDate)),
         dayjs.unix(Number(execution.endDate)),
         getTokensToRelease(),
-        false,
+        isOwnerView,
         project.stage > ProjectStage.FUNDING,
         execution.stage
       );
@@ -183,7 +184,7 @@ export default function Project() {
         dayjs.unix(Number(execution.startDate)),
         dayjs.unix(Number(execution.endDate)),
         getTokensToRelease(),
-        false,
+        isOwnerView,
         project != undefined && project.stage > ProjectStage.FUNDING,
         execution.stage,
         await getVotingResults(execution.proposalId),
@@ -201,7 +202,7 @@ export default function Project() {
         dayjs.unix(Number(milestoneDates.startDate)),
         undefined,
         getTokensToRelease(),
-        false,
+        isOwnerView,
         false,
         -1
       );
@@ -211,7 +212,7 @@ export default function Project() {
         dayjs.unix(Number(milestoneDates.startDate)),
         dayjs.unix(Number(milestoneDates.endDate)),
         getTokensToRelease(),
-        false,
+        isOwnerView,
         false,
         -1
       );
@@ -221,7 +222,7 @@ export default function Project() {
         dayjs.unix(Number(milestoneDates.startDate)),
         dayjs.unix(Number(milestoneDates.endDate)),
         getTokensToRelease(),
-        false,
+        isOwnerView,
         false,
         -1,
         undefined,

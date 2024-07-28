@@ -3,15 +3,18 @@ import { waitForTransaction, writeContract, prepareWriteContract } from '@wagmi/
 import { DatePicker } from "@mui/x-date-pickers";
 import dayjs, { Dayjs } from "dayjs";
 import Head from "next/head";
-import { FormEvent } from "react";
+import { ChangeEvent, FormEvent } from "react";
 import { useState } from "react";
-import { usePrepareContractWrite, useContractWrite, useWaitForTransaction, useContractRead } from 'wagmi'
+import { useContractRead } from 'wagmi'
 import { fundingManagerABI } from "@/contracts/FundingManager";
 import ContractAddresses from "@/contracts/ContractAddresses.json";
 import { useRouter } from 'next/navigation';
 import industries from "@/utils/projectsUtils";
 import '@/utils/numberUtils';
 import { SnackbarProvider, enqueueSnackbar } from 'notistack';
+import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { storage } from '../../../firebaseConfig';
+import UploadField from "@/components/UploadField";
 
 // If we change this, we have to change the smart contract minimum span between milestones
 const durationUnit = "month";
@@ -73,6 +76,48 @@ export default function ProjectCreate() {
     functionName: 'MIN_GOAL'
   });
 
+  const [file, setFile] = useState<File | null>(null);
+  const [fileName, setFileName] = useState<string>('');
+  const [url, setUrl] = useState<string>('');
+
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setFile(e.target.files[0]);
+      setFileName(e.target.files[0].name);
+    }
+  };
+
+  const handleUpload = (): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      if (!file) {
+        reject('No file selected');
+        return;
+      }
+      let fileName = ContractAddresses.fundingManagerAddress + name;
+      const storageRef = ref(storage, `public/${fileName}`);
+      const uploadTask = uploadBytesResumable(storageRef, file);
+
+      uploadTask.on(
+        'state_changed',
+        (snapshot) => {
+          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          console.log('Upload is ' + progress + '% done');
+        },
+        (error) => {
+          console.error('Upload failed', error);
+          reject(error);
+        },
+        () => {
+          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+            console.log('File available at', downloadURL);
+            setUrl(downloadURL);
+            resolve(downloadURL);
+          });
+        }
+      );
+    });
+  };
+
   function calculateMilestonesDates(): bigint[] {
     let milestoneDate = startDate?.startOf("month")?.add(milestoneSpan, "month");;
     let endDate = startDate?.startOf("month")?.add(duration, "month");
@@ -125,20 +170,6 @@ export default function ProjectCreate() {
     await waitForTransaction({ hash: createProjectHash });
   }
 
-  async function createProposal() {/*
-    const { request: config } = await prepareWriteContract({
-      address: ContractAddresses.fundingManagerAddress as `0x${string}`,
-      abi: fundingManagerABI,
-      functionName: 'createProposal',
-      args: [
-          project.id,
-          project.milestone.id
-      ]
-    });
-
-    const { hash: createProjectHash } = await writeContract(config);
-    await waitForTransaction({ hash: createProjectHash });*/
-  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -159,6 +190,7 @@ export default function ProjectCreate() {
       return;
     }
     try {
+      await handleUpload();
       //await createProject();
       await createDemoProject();
       router.replace("/projects");
@@ -287,7 +319,10 @@ export default function ProjectCreate() {
                 ))}
               </TextField>
             </Grid>
-            <Grid item xs={12} md={12} lg={6}>
+            <Grid item xs={12} md={12} lg={4}>
+              <UploadField fileName={fileName} onFileChange={handleFileChange} />
+            </Grid>
+            <Grid item xs={12} md={12} lg={4}>
               <TextField
                 label="Cash flows (separated by comma)"
                 onChange={(e) => setCashFlows(e.target.value)}
@@ -297,7 +332,7 @@ export default function ProjectCreate() {
               >
               </TextField>
             </Grid>
-            <Grid item xs={12} md={12} lg={6}>
+            <Grid item xs={12} md={12} lg={4}>
               <TextField
                 label="Ebitda"
                 onChange={(e) => setEbitda(parseFloat(e.target.value))}

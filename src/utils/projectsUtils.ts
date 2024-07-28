@@ -2,6 +2,8 @@ import { waitForTransaction, writeContract, prepareWriteContract } from '@wagmi/
 import ContractAddresses from "@/contracts/ContractAddresses.json";
 import { fundingManagerABI } from "@/contracts/FundingManager";
 import { dummyDAIABI } from "@/contracts/DummyDAI";
+import { getStorage, ref, getDownloadURL } from 'firebase/storage';
+import { storage } from '../../firebaseConfig';
 
 export async function increaseAllowance(investAmount: number) {
   const { request: increaseAllowanceConfig } = await prepareWriteContract({
@@ -63,6 +65,17 @@ export async function triggerUpkeep(calldata: string) {
    // console.log(e);
  // }
 }
+
+export const getImageUrl = async (imageName: string): Promise<string> => {
+  const imageRef = ref(storage, `public/${imageName}`);
+  try {
+    const url = await getDownloadURL(imageRef);
+    return url;
+  } catch (error) {
+    console.error('Error getting image URL:', error);
+    return 'https://firebasestorage.googleapis.com/v0/b/tpprofesionaljf.appspot.com/o/public%2Fdefault-image.jpg?alt=media&token=b2a40410-5e0b-4bf3-a886-0e8e1e63095e';
+  }
+};
 
 export async function setDCFCalculatorValues() {
   const industry = industries[0].id;
