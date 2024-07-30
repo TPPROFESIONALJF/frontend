@@ -62,6 +62,7 @@ export default function ProjectCreate() {
   const [startDate, setStartDate] = useState<Dayjs | null>(null);
   const [duration, setDuration] = useState<number>(3);
   const [name, setName] = useState<string | null>(null);
+  const [description, setProjectDescription] = useState<string | null>(null);
   const [industrie, setIndustrie] = useState<number | null>(null);
   const [goal, setGoal] = useState<bigint | null>(null);
   const [milestoneSpan, setMilestoneSpan] = useState<number>(3);
@@ -138,6 +139,7 @@ export default function ProjectCreate() {
       args: [
         goal?.asTokenSmallestUnit() ?? BigInt(-1),
         name!!,
+        description!!,
         industrie!!,
         splittedCashFlows as [bigint, bigint, bigint, bigint, bigint],
         ebitda.asTokenSmallestUnit()
@@ -157,6 +159,7 @@ export default function ProjectCreate() {
       args: [
         goal?.asTokenSmallestUnit() ?? BigInt(-1),
         name!!,
+        description!!,
         industrie!!,
         BigInt(startDate?.startOf("month").unix() ?? dayjs().unix()),
         BigInt(startDate?.startOf("month").add(duration, durationUnit).unix() ?? dayjs().unix()),
@@ -318,9 +321,19 @@ export default function ProjectCreate() {
                   </MenuItem>
                 ))}
               </TextField>
+            </Grid>    
+            <Grid item xs={12} md={12} lg={12}>
+              <TextField
+                multiline
+                rows={3}
+                label="Project description"
+                onChange={(e) => setProjectDescription(e.target.value)}
+                required
+                fullWidth
+              />
             </Grid>
             <Grid item xs={12} md={12} lg={4}>
-              <UploadField fileName={fileName} onFileChange={handleFileChange} />
+              <UploadField fileName={fileName} label="Project image" onFileChange={handleFileChange} />
             </Grid>
             <Grid item xs={12} md={12} lg={4}>
               <TextField

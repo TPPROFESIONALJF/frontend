@@ -66,6 +66,12 @@ export async function triggerUpkeep(calldata: string) {
  // }
 }
 
+export const getDocumentUrl = async (documentName: string): Promise<string> => {
+  const imageRef = ref(storage, `documents/${documentName}`);
+  const url = await getDownloadURL(imageRef);
+  return url;
+};
+
 export const getImageUrl = async (imageName: string): Promise<string> => {
   const imageRef = ref(storage, `public/${imageName}`);
   try {
@@ -74,6 +80,17 @@ export const getImageUrl = async (imageName: string): Promise<string> => {
   } catch (error) {
     console.error('Error getting image URL:', error);
     return 'https://firebasestorage.googleapis.com/v0/b/tpprofesionaljf.appspot.com/o/public%2Fdefault-image.jpg?alt=media&token=b2a40410-5e0b-4bf3-a886-0e8e1e63095e';
+  }
+};
+
+export const fileExists = async (fileName: string): Promise<boolean> => {
+  const fileRef = ref(storage, `images/${fileName}`);
+  try {
+    await getDownloadURL(fileRef);
+    return true;
+  } catch (error) {
+    console.error('Error getting file URL:', error);
+    return false;
   }
 };
 

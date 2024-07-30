@@ -2,8 +2,10 @@ import { Dayjs } from "dayjs";
 import { MilestoneStepData } from "./MilestoneStepData"
 
 export class DocumentUploadStepData extends MilestoneStepData {
-  onDocumentsUpload: () => void;
-  proposalStatus: String
+  onDocumentsUpload: (file: File) => boolean;
+  proposalStatus: String;
+  documentName: String | undefined;
+  documentUrl: string | undefined;
 
   constructor(
     _name: string,
@@ -11,11 +13,15 @@ export class DocumentUploadStepData extends MilestoneStepData {
     _endDate: Dayjs | undefined,
     _caption: string,
     _isOwnerView: boolean,
-    _onDocumentsUpload: () => void,
-    _proposalStatus: String
+    _onDocumentsUpload: (file: File) => boolean,
+    _proposalStatus: String,
+    _documentName: string | undefined,
+    _documentUrl: string | undefined
   ) {
     super(_name, _startDate, _endDate, _caption, _isOwnerView);
     this.onDocumentsUpload = _onDocumentsUpload;
-    this.proposalStatus = _proposalStatus
+    this.proposalStatus = _proposalStatus;
+    this.documentName = _documentName;
+    this.documentUrl = _documentUrl;
   }
 }

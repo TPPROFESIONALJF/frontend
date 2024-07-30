@@ -306,6 +306,11 @@ export const fundingManagerABI = [
         "type": "string"
       },
       {
+        "internalType": "string",
+        "name": "_description",
+        "type": "string"
+      },
+      {
         "internalType": "enum Industrie",
         "name": "_industrie",
         "type": "uint8"
@@ -351,6 +356,11 @@ export const fundingManagerABI = [
       {
         "internalType": "string",
         "name": "_name",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "_description",
         "type": "string"
       },
       {
@@ -565,6 +575,11 @@ export const fundingManagerABI = [
             "type": "string"
           },
           {
+            "internalType": "string",
+            "name": "description",
+            "type": "string"
+          },
+          {
             "internalType": "address",
             "name": "owner",
             "type": "address"
@@ -654,6 +669,11 @@ export const fundingManagerABI = [
           {
             "internalType": "string",
             "name": "name",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "description",
             "type": "string"
           },
           {
@@ -899,6 +919,11 @@ export const fundingManagerABI = [
       {
         "internalType": "string",
         "name": "name",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "description",
         "type": "string"
       },
       {

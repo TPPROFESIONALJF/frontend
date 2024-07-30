@@ -4,14 +4,15 @@ import { TextField, Button, InputAdornment } from '@mui/material';
 
 interface UploadFieldProps {
   fileName: string;
+  label: string;
   onFileChange: (e: ChangeEvent<HTMLInputElement>) => void;
 }
 
-const UploadField: React.FC<UploadFieldProps> = ({ fileName, onFileChange }) => {
+const UploadField: React.FC<UploadFieldProps> = ({ fileName, label, onFileChange }) => {
   return (
     <TextField
       variant="outlined"
-      label="Upload File"
+      label={label}
       value={fileName}
       fullWidth
       InputProps={{

@@ -1,6 +1,6 @@
 import { DocumentUploadStepData } from "@/domain/DocumentUploadStepData";
 import { EndMilestoneStepData } from "@/domain/EndMilestoneStepData";
-import { Milestone } from "@/domain/Milestone";
+import { Milestone, ReportMilestone } from "@/domain/Milestone";
 import { MilestoneStepData } from "@/domain/MilestoneStepData";
 import { VotingInProgressMilestoneStepData } from "@/domain/VotingInProgressMilestoneStepData";
 import { VotingResultsMilestoneStepData } from "@/domain/VotingResultsMilestoneStepData";
@@ -12,13 +12,15 @@ export function getDates(step: MilestoneStepData) {
     : `${step.startDate.format('DD/MM/YYYY HH:mm:ss')}`
 }
 
-export function buildMilestoneSteps(milestone: Milestone, stepNumber: number, onVoteCast: (proposalId: bigint, voteFor: number) => void, onDocumentsUpload: () => void): MilestoneStepData {
+export function buildMilestoneSteps(milestone: Milestone, stepNumber: number, onVoteCast: (proposalId: bigint, voteFor: number) => void, onDocumentsUpload: (file: File) => boolean): MilestoneStepData {
   const startDate = milestone.startDate;
   const endDate = milestone.endDate;
   const diff = endDate?.diff(startDate, 'minute');
-  const middleDate = endDate !== undefined ? startDate.add(diff!! / 2, "minute") : startDate;
+//  const middleDate = endDate !== undefined ? startDate.add(diff!! / 2, "minute") : startDate;
+  const middleDate = endDate !== undefined ? startDate.add(1, "minute") : startDate; // For demo purposes we give more time to votations
   if (stepNumber == 0) {
-    return new DocumentUploadStepData("Report documents upload", startDate, middleDate, "", milestone.isOwnerView, onDocumentsUpload, "");
+    let documentMilestone = milestone as ReportMilestone;
+    return new DocumentUploadStepData("Report documents upload", startDate, middleDate, "", milestone.isOwnerView, onDocumentsUpload, "", documentMilestone.documentName, documentMilestone.documentUrl);
   } else if (stepNumber == 1) {
     return new VotingInProgressMilestoneStepData("Voting period", middleDate, endDate, "", milestone.isOwnerView, false, true, milestone.votingResults, onVoteCast);
   } else if (stepNumber == 2) {

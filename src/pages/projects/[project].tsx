@@ -7,7 +7,7 @@ import { governorABI } from "@/contracts/Governor";
 import { dummyDAIABI } from "@/contracts/DummyDAI";
 import ContractAddresses from "@/contracts/ContractAddresses.json";
 import NotFound from './404';
-import { MilestoneStage, ProjectStage, getIndustrieById, increaseAllowance, investOnProject, resetAllowance, triggerUpkeep } from "@/utils/projectsUtils";
+import { MilestoneStage, ProjectStage, fileExists, getDocumentUrl, getImageUrl, getIndustrieById, increaseAllowance, investOnProject, resetAllowance, triggerUpkeep } from "@/utils/projectsUtils";
 import Image from 'next/image';
 import LinearProgressWithLabel from '@/components/LinearProgressWithLabel';
 import InvestModal from '@/components/InvestModal';
@@ -24,7 +24,8 @@ import { EndMilestoneCard } from '@/components/MilestoneCards/EndMilestoneCard';
 import { EndMilestone, Milestone, ReportMilestone, StartMilestone } from '@/domain/Milestone';
 import statuses from '@/components/MilestoneCards/ReportMilestoneCard';
 import { readContract } from '@wagmi/core';
-import { exec } from 'child_process';
+import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
+import { storage } from '../../../firebaseConfig';
 
 export default function Project() {
   const [investAmount, setInvestAmount] = useState(0);
@@ -33,6 +34,7 @@ export default function Project() {
   const [projectId, setProjectId] = useState(BigInt(-1));
   const [isInvesting, setIsInvesting] = useState(false);
   const [isUploadingDocuments, setIsUploadingDocuments] = useState(false);
+  const [imageUrl, setImageUrl] = useState<string | undefined>(undefined);
   const [executedMilestones, setExecutedMilestones] = useState<Milestone[] | undefined>(undefined);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
@@ -107,7 +109,6 @@ export default function Project() {
   let isOwnerView = address == project?.owner;
 
   buildExecutedMilestones();
-
   let activeMilestone = undefined;
   let lastMilestoneExecution = executedMilestones?.at(milestonesExecutions!!.length - 1) as Milestone;
   if (lastMilestoneExecution != undefined && lastMilestoneExecution.stage == 0) {
@@ -153,6 +154,11 @@ export default function Project() {
       Promise.all(milestones).then((values) => {
         if (executedMilestones == undefined || executedMilestones.toString() != values.toString())
           setExecutedMilestones(values)
+          if (imageUrl == undefined) {
+            getImageUrl(ContractAddresses.fundingManagerAddress + project?.name).then((url) => {
+              setImageUrl(url);
+            });
+          }
         });
     }
   }
@@ -179,6 +185,7 @@ export default function Project() {
         execution.stage
       );
     } else {
+      let fileName = ContractAddresses.fundingManagerAddress + project?.name;
       return new ReportMilestone(
         execution.projectId,
         dayjs.unix(Number(execution.startDate)),
@@ -188,8 +195,10 @@ export default function Project() {
         project != undefined && project.stage > ProjectStage.FUNDING,
         execution.stage,
         await getVotingResults(execution.proposalId),
-        uplaodDocumentsAndEvaluateProject,
-        execution.proposalId
+        uploadDocuments,
+        execution.proposalId,
+        fileName,
+        await getDocumentUrl(fileName)
       );
     }
   }
@@ -226,7 +235,7 @@ export default function Project() {
         false,
         -1,
         undefined,
-        uplaodDocumentsAndEvaluateProject,
+        uploadDocuments,
         BigInt(0)
       );
     }
@@ -263,18 +272,19 @@ export default function Project() {
     }
   }
 
-  async function uplaodDocumentsAndEvaluateProject() {
+  async function uploadDocuments(file: File): boolean {
     try {
       setIsUploadingDocuments(true);
-      // TODO: Upload documents?
+      await handleUpload(file);
       setIsUploadingDocuments(false);
-      // TODO: Close modal
       enqueueSnackbar("Your documents and evaluation have been uploaded successfully", { variant: "success" });
+      return true;
     } catch (e) {
       setIsUploadingDocuments(false);
       if (e instanceof Error) {
         enqueueSnackbar("Oops! Something went wrong when trying to process your evaluation: " + e.message, { variant: "error" });
       }
+      return false;
     }
   }
 
@@ -360,6 +370,36 @@ export default function Project() {
     return { forVotes: forVotes, againstVotes: againstVotes, abstainVotes: abstainVotes, finalResult: finalResult };
   }
 
+  const handleUpload = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      if (!file) {
+        reject('No file selected');
+        return;
+      }
+      let fileName = ContractAddresses.fundingManagerAddress + project?.name;
+      const storageRef = ref(storage, `documents/${fileName}`);
+      const uploadTask = uploadBytesResumable(storageRef, file);
+
+      uploadTask.on(
+        'state_changed',
+        (snapshot) => {
+          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          console.log('Upload is ' + progress + '% done');
+        },
+        (error) => {
+          console.error('Upload failed', error);
+          reject(error);
+        },
+        () => {
+          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+            console.log('File available at', downloadURL);
+            resolve(downloadURL);
+          });
+        }
+      );
+    });
+  };
+
   return (
     <>
       <Head>
@@ -427,7 +467,7 @@ export default function Project() {
                           // 16:9
                           pt: '56.25%',
                         }}
-                        image="https://source.unsplash.com/random?wallpapers">
+                        image={imageUrl}>
                       </CardMedia>
                     </Card>
                   </Grid>
@@ -516,7 +556,7 @@ export default function Project() {
                       variant="body1"
                       gutterBottom
                     >
-                      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+                      {project?.description}
                     </Typography>
                   </Grid>
                 </Grid>
@@ -612,22 +652,3 @@ export default function Project() {
     </>
   );
 }
-
-/*ponele que lo hago a las 20:57 y pongo:
-- 20:57 - 21:00 --> tiempo de inversión, me logeo con otro user e invierto
-- start date --> 21:00 --> liberación de fondos inicial
-- end date --> 21:20
-- milestoneDates --> [endDate: 21:15]
-- milestoneCheckInterval: 5 minutes
-- minTimeBetweenMilestones: 1 minutes
-
-esto nos da:
-- start milestone: 21:00 - 21:00
-- middle milestone: 21:10 - 21:15
-	- Upload documents period 21:10 - 21:12:30
-	- Voting period 21:12:30 - 21:15
-- end milestone: 21:16 - 21:20
-
-
-Entonces necesito:
-- */

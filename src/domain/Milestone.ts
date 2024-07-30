@@ -43,9 +43,11 @@ export interface ReportMilestoneProps {
 }
 
 export class ReportMilestone extends Milestone {
-  onDocumentsUpload: () => void;
+  onDocumentsUpload: (file: File) => boolean;
   votingResults: VotingResult | undefined;
   proposalId: bigint;
+  documentName: string | undefined;
+  documentUrl: string | undefined;
 
   constructor(
     _projectId: bigint,
@@ -56,12 +58,16 @@ export class ReportMilestone extends Milestone {
     _isActive: boolean,
     _stage: number,
     _votingResults: VotingResult | undefined,
-    _onDocumentsUpload: () => void,
-    _proposalId: bigint
+    _onDocumentsUpload: (file: File) => boolean,
+    _proposalId: bigint,
+    _documentName: string | undefined,
+    _documentUrl: string | undefined
   ) {
     super(_projectId, _startDate, _endDate, _tokensToRelease, _isOwnerView, _isActive, _stage);
     this.votingResults = _votingResults;
     this.onDocumentsUpload = _onDocumentsUpload;
     this.proposalId = _proposalId;
+    this.documentName = _documentName;
+    this.documentUrl = _documentUrl;
   }
 }

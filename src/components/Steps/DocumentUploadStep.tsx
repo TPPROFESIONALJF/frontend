@@ -19,17 +19,20 @@ export function DocumentUploadStep({ step, ...other }: DocumentUploadStepProps) 
   labelProps.optional = <Typography variant="body2">{step?.caption}</Typography>
 
   return (
-    <Step key={step!!.name} {...stepProps} {...other}>
+    <Step key={step!!.name} {...stepProps} {...other} active={true}>
       <StepLabel {...labelProps}>({getDates(step)}) {step.name}</StepLabel>
       <StepContent>
         {
           step.isOwnerView ? <Button onClick={handleOpen}>Upload documents</Button> : ""
         }
+        { step.documentName != undefined ? <Button href={step.documentUrl!!} download={step.documentName}>Download document</Button> : "" }
         <UploadDocumentsModal props={{
           open,
           handleClose,
-          onUploadClick() {
-            step.onDocumentsUpload();
+          onUploadClick(file) {
+            if (step.onDocumentsUpload(file)) {
+              handleClose();
+            }
           }
         }} />
       </StepContent>
