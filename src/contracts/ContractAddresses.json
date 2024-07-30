@@ -1,7 +1,7 @@
 {
     "dummyDAIAddress": "0xe6B4D42dC51Ed30420F700d2d80B38E7113A90DC",
-    "fundingManagerAddress": "0xEA03197B7d917Ae0B392A215bF327472cBdb3e0F",
-    "governorAddress": "0x12255871B54B9Fd9F9B70E01e179a07Adb04592d",
-    "governorTokenAddress": "0x22E935273cc8b4407acC87aD183a416F6E414b6B",
+    "fundingManagerAddress": "0x111B864A79a0640A99415684266da83D4AD77851",
+    "governorAddress": "0xec68d1757fe2A31A639038Db0d535D1171E51606",
+    "governorTokenAddress": "0xcab9E398c353813695c5467db799dC5537408BA6",
     "dcfCalculatorAddress": "0x29313D65a585F4E91Db72440096E793177F9B629"
 }

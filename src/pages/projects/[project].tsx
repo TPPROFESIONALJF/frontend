@@ -320,6 +320,8 @@ export default function Project() {
       args: [proposalId]
     });
 
+    console.log("status2:", status);
+
     if (status != undefined && status){
       return statuses[status] as string;
     }
@@ -335,6 +337,8 @@ export default function Project() {
       args: [proposalId]
     });
 
+    console.log("results", results);
+
     const status = await proposalStatus(proposalId);
 
     let finalResult = false;
@@ -343,7 +347,6 @@ export default function Project() {
       finalResult = true;
     }
 
-    console.log("status :", status);
     let forVotes = 0;
     let againstVotes = 0;
     let abstainVotes = 0;

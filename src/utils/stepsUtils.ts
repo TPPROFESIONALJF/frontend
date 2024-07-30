@@ -20,7 +20,6 @@ export function buildMilestoneSteps(milestone: Milestone, stepNumber: number, on
   if (stepNumber == 0) {
     return new DocumentUploadStepData("Report documents upload", startDate, middleDate, "", milestone.isOwnerView, onDocumentsUpload, "");
   } else if (stepNumber == 1) {
-    console.log("milestoneData: ", milestone);
     return new VotingInProgressMilestoneStepData("Voting period", middleDate, endDate, "", milestone.isOwnerView, false, true, milestone.votingResults, onVoteCast, milestone.proposalId);
   } else if (stepNumber == 2) {
     return new VotingResultsMilestoneStepData("Voting results", endDate!!, undefined, "", milestone.isOwnerView, milestone.votingResults);
