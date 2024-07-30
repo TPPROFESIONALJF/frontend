@@ -13,20 +13,18 @@ export function VotingInProgressStep({ step, ...other }: VotingInProgressStepPro
     optional?: React.ReactNode;
   } = {};
   labelProps.optional = <Typography variant="body2">{step?.caption}</Typography>
-
   return (
-    <Step key={step!!.name} {...stepProps} {...other}>
+    <Step key={step!!.name} {...stepProps} {...other} active={true}>
       <StepLabel {...labelProps}>({getDates(step)}) {step.name}</StepLabel>
       <StepContent>
         {
-          !step.isVotationOpen ? "" :
-            step.isOwnerView ? <VotingResults results={step.voteResults} />
-              : (false ? <VotingResults results={step.voteResults} />
-                : <Stack direction="row" spacing={1}>
-                  <Button fullWidth variant="contained" color="success" sx={{ fontWeight: "bold" }} onClick={() => step.onVoteCast(true)}>FOR (Continue project)</Button>
-                  <Button fullWidth variant="contained" color="error" onClick={() => step.onVoteCast(false)}>AGAINST (Cancel project)</Button>
+          
+         
+                <Stack direction="row" spacing={1}>
+                  <Button fullWidth variant="contained" color="success" sx={{ fontWeight: "bold" }} onClick={() => step.onVoteCast(step.proposalId, 1)}>FOR (Continue project)</Button>
+                  <Button fullWidth variant="contained" color="error" onClick={() => step.onVoteCast(step.proposalId ,0)}>AGAINST (Cancel project)</Button>
                 </Stack>
-              )
+              
         }
       </StepContent>
     </Step>

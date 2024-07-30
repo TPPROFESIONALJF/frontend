@@ -320,7 +320,6 @@ export default function Project() {
       args: [proposalId]
     });
 
-    console.log(proposalId);
     if (status != undefined && status){
       return statuses[status] as string;
     }
@@ -328,15 +327,13 @@ export default function Project() {
   }
 
   async function getVotingResults(proposalId: bigint) : Promise<VotingResult | undefined> {
-
+    console.log("proposalid: ", proposalId);
     const results = await readContract({
       address: ContractAddresses.governorAddress as `0x${string}`,
       abi: governorABI,
       functionName: 'proposalVotes',
       args: [proposalId]
     });
-
-    console.log("votingResults: ", results);
 
     const status = await proposalStatus(proposalId);
 

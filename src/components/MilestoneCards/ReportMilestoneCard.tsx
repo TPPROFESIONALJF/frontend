@@ -13,6 +13,8 @@ import { buildMilestoneSteps, getActiveStep } from "@/utils/stepsUtils";
 import ContractAddresses from "@/contracts/ContractAddresses.json";
 import { useContractRead, useContractWrite } from 'wagmi';
 import { governorABI } from "@/contracts/Governor";
+import { waitForTransaction, writeContract, prepareWriteContract, readContract } from '@wagmi/core';
+
 
 const statuses = ["Pending",
   , "Active",
@@ -32,25 +34,30 @@ function getCardTitle(milestone: Milestone) {
     : `${milestone.startDate.format('DD/MM/YYYY HH:mm:ss')}`
 }
 
-function onVoteCast(proposalId: bigint, voteFor: number) {
-  const { data: status} = useContractWrite({
+async function onVoteCast(proposalId: bigint, voteFor: number) {
+  const { request: voteConfig } = await prepareWriteContract({
     address: ContractAddresses.governorAddress as `0x${string}`,
     abi: governorABI,
     functionName: 'castVote',
-    args: [proposalId, voteFor]
+    args: [
+      proposalId,
+      voteFor
+    ]
   });
+
+  const { hash: voteHash } = await writeContract(voteConfig);
+  await waitForTransaction({ hash: voteHash });
 }
 
-function proposalStatus(proposalId: bigint) : string{
-  const { data: status} = useContractRead({
+async function proposalStatus(proposalId: bigint) : Promise<string> {
+  const status = await readContract({
     address: ContractAddresses.governorAddress as `0x${string}`,
     abi: governorABI,
     functionName: 'state',
-    args: [proposalId],
-    watch: true
+    args: [proposalId]
   });
-  console.log("status")
-  console.log(status);
+
+  console.log(proposalId);
   if (status != undefined && status){
     return statuses[status] as string;
   }

@@ -6,7 +6,6 @@ interface VotingResultsProps {
 }
 
 export function VotingResults({ results }: VotingResultsProps) {
-  console.log(results);
   if (results === undefined) {
     return "";
   }

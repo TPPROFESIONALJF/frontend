@@ -5,8 +5,9 @@ import { VotingResult } from "./VotingResult";
 export class VotingInProgressMilestoneStepData extends MilestoneStepData {
   isVotationOpen: boolean;
   alreadyVoted: boolean;
+  proposalId: bigint;
   // Will be called with true if voting for and false if voting against
-  onVoteCast: (voteFor: boolean) => void;
+  onVoteCast: (proposalId: bigint, voteFor: number) => void;
   voteResults: VotingResult | undefined;
 
   constructor(
@@ -18,11 +19,13 @@ export class VotingInProgressMilestoneStepData extends MilestoneStepData {
     _alreadyVoted: boolean,
     _isVotationOpen: boolean,
     _voteResults: VotingResult | undefined,
-    _onVoteCast: (voteFor: boolean) => void) {
+    _onVoteCast: (proposalId: bigint, voteFor: number) => void,
+    _proposalId: bigint) {
     super(_name, _startDate, _endDate, _caption, _isOwnerView);
     this.alreadyVoted = _alreadyVoted;
     this.isVotationOpen = _isVotationOpen;
     this.voteResults = _voteResults;
     this.onVoteCast = _onVoteCast;
+    this.proposalId = _proposalId;
   }
 }
