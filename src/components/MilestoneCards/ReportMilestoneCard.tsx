@@ -14,7 +14,7 @@ import ContractAddresses from "@/contracts/ContractAddresses.json";
 import { useContractRead, useContractWrite } from 'wagmi';
 import { governorABI } from "@/contracts/Governor";
 import { waitForTransaction, writeContract, prepareWriteContract, readContract } from '@wagmi/core';
-
+import {enqueueSnackbar } from 'notistack';
 
 const statuses = ["Pending",
   , "Active",
@@ -35,18 +35,29 @@ function getCardTitle(milestone: Milestone) {
 }
 
 async function onVoteCast(proposalId: bigint, voteFor: number) {
-  const { request: voteConfig } = await prepareWriteContract({
-    address: ContractAddresses.governorAddress as `0x${string}`,
-    abi: governorABI,
-    functionName: 'castVote',
-    args: [
-      proposalId,
-      voteFor
-    ]
-  });
+  try{
+    const { request: voteConfig } = await prepareWriteContract({
+      address: ContractAddresses.governorAddress as `0x${string}`,
+      abi: governorABI,
+      functionName: 'castVote',
+      args: [
+        proposalId,
+        voteFor
+      ]
+    });
 
-  const { hash: voteHash } = await writeContract(voteConfig);
-  await waitForTransaction({ hash: voteHash });
+    const { hash: voteHash } = await writeContract(voteConfig);
+    await waitForTransaction({ hash: voteHash });
+  } catch (error) {
+    if (error instanceof Error) {
+      let errorMessage = "";
+        if (error.message.includes("vote not currently active")){
+          errorMessage = "Voting Period has finished";
+        }
+
+      enqueueSnackbar(errorMessage);
+    }
+  }
 }
 
 async function proposalStatus(proposalId: bigint) : Promise<string> {
@@ -57,7 +68,6 @@ async function proposalStatus(proposalId: bigint) : Promise<string> {
     args: [proposalId]
   });
 
-  console.log(proposalId);
   if (status != undefined && status){
     return statuses[status] as string;
   }
