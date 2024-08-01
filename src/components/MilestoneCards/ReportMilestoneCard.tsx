@@ -50,12 +50,16 @@ async function onVoteCast(proposalId: bigint, voteFor: number) {
     await waitForTransaction({ hash: voteHash });
   } catch (error) {
     if (error instanceof Error) {
+      console.log(error.message);
       let errorMessage = "";
         if (error.message.includes("vote not currently active")){
-          errorMessage = "Voting Period has finished";
+          errorMessage = "Voting period has finished";
+        }
+        if (error.message.includes("unknown proposal id")){
+          errorMessage = "Voting period has not started yet";
         }
 
-      enqueueSnackbar(errorMessage);
+      enqueueSnackbar(errorMessage, { variant: "error" });
     }
   }
 }
