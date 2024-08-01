@@ -346,7 +346,6 @@ export default function Project() {
   }
 
   async function getVotingResults(proposalId: bigint) : Promise<VotingResult | undefined> {
-    console.log("proposalid: ", proposalId);
     const results = await readContract({
       address: ContractAddresses.governorAddress as `0x${string}`,
       abi: governorABI,
@@ -359,6 +358,7 @@ export default function Project() {
     let finalResult = false;
 
     if (status == statuses[4]){
+      console.log("status Succeeded")
       finalResult = true;
     }
 
@@ -367,10 +367,10 @@ export default function Project() {
     let abstainVotes = 0;
 
     if (results != undefined){
-      finalResult = (results[1]+results[2]) > results[0];
-      forVotes = Number(results[1]);
-      againstVotes = Number(results[0]);
-      abstainVotes = Number(results[2]);
+      finalResult = (results[1]+results[2]) >= results[0];
+      forVotes = Number(results[1].asTokenStandardUnit());
+      againstVotes = Number(results[0].asTokenStandardUnit());
+      abstainVotes = Number(results[2].asTokenStandardUnit());
     }
     return { forVotes: forVotes, againstVotes: againstVotes, abstainVotes: abstainVotes, finalResult: finalResult };
   }
