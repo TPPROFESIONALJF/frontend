@@ -68,8 +68,11 @@ export async function triggerUpkeep(calldata: string) {
 
 export const getDocumentUrl = async (documentName: string): Promise<string> => {
   const imageRef = ref(storage, `documents/${documentName}`);
-  const url = await getDownloadURL(imageRef);
-  return url;
+  try {
+    return await getDownloadURL(imageRef);
+  } catch {
+    return "";
+  }
 };
 
 export const getImageUrl = async (imageName: string): Promise<string> => {

@@ -7,7 +7,7 @@ import { governorABI } from "@/contracts/Governor";
 import { dummyDAIABI } from "@/contracts/DummyDAI";
 import ContractAddresses from "@/contracts/ContractAddresses.json";
 import NotFound from './404';
-import { MilestoneStage, ProjectStage, fileExists, getDocumentUrl, getImageUrl, getIndustrieById, increaseAllowance, investOnProject, resetAllowance, triggerUpkeep } from "@/utils/projectsUtils";
+import { MilestoneStage, ProjectStage, getDocumentUrl, getImageUrl, getIndustrieById, increaseAllowance, investOnProject, resetAllowance, triggerUpkeep } from "@/utils/projectsUtils";
 import Image from 'next/image';
 import LinearProgressWithLabel from '@/components/LinearProgressWithLabel';
 import InvestModal from '@/components/InvestModal';
@@ -35,6 +35,7 @@ export default function Project() {
   const [isInvesting, setIsInvesting] = useState(false);
   const [isUploadingDocuments, setIsUploadingDocuments] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | undefined>(undefined);
+  const [documentUrl, setDocumentUrl] = useState<string | undefined>(undefined);
   const [executedMilestones, setExecutedMilestones] = useState<Milestone[] | undefined>(undefined);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
@@ -153,13 +154,18 @@ export default function Project() {
     if (milestones != undefined) {
       Promise.all(milestones).then((values) => {
         if (executedMilestones == undefined || executedMilestones.toString() != values.toString())
-          setExecutedMilestones(values)
+          setExecutedMilestones(values);
           if (imageUrl == undefined) {
             getImageUrl(ContractAddresses.fundingManagerAddress + project?.name).then((url) => {
               setImageUrl(url);
             });
           }
         });
+        if (documentUrl == undefined) {
+          getDocumentUrl(ContractAddresses.fundingManagerAddress + project?.name).then((url) => {
+            setDocumentUrl(url);
+          });
+        }
     }
   }
 
@@ -198,7 +204,7 @@ export default function Project() {
         uploadDocuments,
         execution.proposalId,
         fileName,
-        await getDocumentUrl(fileName)
+        documentUrl
       );
     }
   }
@@ -236,7 +242,9 @@ export default function Project() {
         -1,
         undefined,
         uploadDocuments,
-        BigInt(0)
+        BigInt(0),
+        undefined,
+        undefined
       );
     }
   }
@@ -330,7 +338,7 @@ export default function Project() {
       args: [proposalId]
     });
 
-    console.log(proposalId);
+    console.log("status :", status);
     if (status != undefined && status){
       return statuses[status] as string;
     }
@@ -338,15 +346,13 @@ export default function Project() {
   }
 
   async function getVotingResults(proposalId: bigint) : Promise<VotingResult | undefined> {
-
+    console.log("proposalid: ", proposalId);
     const results = await readContract({
       address: ContractAddresses.governorAddress as `0x${string}`,
       abi: governorABI,
       functionName: 'proposalVotes',
       args: [proposalId]
     });
-
-    console.log("votingResults: ", results);
 
     const status = await proposalStatus(proposalId);
 
@@ -356,13 +362,12 @@ export default function Project() {
       finalResult = true;
     }
 
-    console.log("status :", status);
     let forVotes = 0;
     let againstVotes = 0;
     let abstainVotes = 0;
 
     if (results != undefined){
-      finalResult = (results[1]+results[2]) >= results[0];
+      finalResult = (results[1]+results[2]) > results[0];
       forVotes = Number(results[1]);
       againstVotes = Number(results[0]);
       abstainVotes = Number(results[2]);

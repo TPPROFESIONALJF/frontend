@@ -10,6 +10,7 @@ interface ProjectProps {
     name: string;
     industrie: number;
     stage: number;
+    description: string;
   }
 }
 
@@ -38,12 +39,15 @@ export default function ProjectCard({ data }: ProjectProps) {
             <Typography gutterBottom variant="h5" component="h2">
               {data.name}
             </Typography>
-            <Typography>
+            <Typography gutterBottom>
               {getIndustrieById(data.industrie.toString())?.name}
+            </Typography>
+            <Typography>
+              {data.description}
             </Typography>
           </CardContent>
           <CardActions>
-            <Button size="small" onClick={() => router.push("/projects/" + data.id)}>View</Button>
+            <Button size="medium" fullWidth variant="contained" onClick={() => router.push("/projects/" + data.id)}>View</Button>
           </CardActions>
         </Card>
       </Grid>

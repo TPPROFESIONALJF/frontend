@@ -19,7 +19,7 @@ export function DocumentUploadStep({ step, ...other }: DocumentUploadStepProps) 
   labelProps.optional = <Typography variant="body2">{step?.caption}</Typography>
 
   return (
-    <Step key={step!!.name} {...stepProps} {...other} active={true}>
+    <Step key={step!!.name} {...stepProps} {...other}>
       <StepLabel {...labelProps}>({getDates(step)}) {step.name}</StepLabel>
       <StepContent>
         {
