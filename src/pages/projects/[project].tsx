@@ -26,6 +26,7 @@ import statuses from '@/components/MilestoneCards/ReportMilestoneCard';
 import { readContract } from '@wagmi/core';
 import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
 import { storage } from '../../../firebaseConfig';
+import { NorthWest } from '@mui/icons-material';
 
 export default function Project() {
   const [investAmount, setInvestAmount] = useState(0);
@@ -110,7 +111,7 @@ export default function Project() {
   let isOwnerView = address == project?.owner;
 
   buildExecutedMilestones();
-  let activeMilestone = undefined;
+  let activeMilestone: Milestone | undefined = undefined;
   let lastMilestoneExecution = executedMilestones?.at(milestonesExecutions!!.length - 1) as Milestone;
   if (lastMilestoneExecution != undefined && lastMilestoneExecution.stage == 0) {
     activeMilestone = executedMilestones?.at(milestonesExecutions!!.length - 1);
@@ -121,6 +122,7 @@ export default function Project() {
   }
 
   let historyMilestones = executedMilestones?.filter((execution) => execution.stage == MilestoneStage.FINISHED);
+  console.log(historyMilestones);
 
   function buildMilestoneCardForHistory(calendarMilestone: Milestone): JSX.Element {
     if (calendarMilestone instanceof StartMilestone) {
@@ -355,7 +357,7 @@ export default function Project() {
 
     const status = await proposalStatus(proposalId);
 
-    let finalResult = false;
+    let finalResult: boolean = false;
 
     if (status == statuses[4]){
       console.log("status Succeeded")
@@ -367,11 +369,12 @@ export default function Project() {
     let abstainVotes = 0;
 
     if (results != undefined){
-      finalResult = (results[1]+results[2]) >= results[0];
+      finalResult = (results[1]+results[2]) > results[0];
       forVotes = Number(results[1].asTokenStandardUnit());
       againstVotes = Number(results[0].asTokenStandardUnit());
       abstainVotes = Number(results[2].asTokenStandardUnit());
     }
+
     return { forVotes: forVotes, againstVotes: againstVotes, abstainVotes: abstainVotes, finalResult: finalResult };
   }
 
@@ -569,8 +572,10 @@ export default function Project() {
             </Card>
             <Card sx={{ width: "100%", px: 4, py: 2 }}>
               <CardContent>
+                {/*
                 <Button onClick={triggerStartUpkeep}>Trigger start upkeep</Button>
                 <Button onClick={triggerEndUpkeep}>Trigger end upkeep</Button>
+                 */}
                 <Typography
                   component="h3"
                   variant="h3"

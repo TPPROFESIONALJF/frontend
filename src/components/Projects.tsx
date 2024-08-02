@@ -32,7 +32,7 @@ export default function Projects() {
           >
           </Stack>
           <Grid container spacing={4}>
-            {data?.map((project) => (
+            {data?.toReversed().map((project) => (
               <ProjectCard data={project} />
             ))}
           </Grid>

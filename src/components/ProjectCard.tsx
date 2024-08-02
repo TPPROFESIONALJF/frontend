@@ -39,9 +39,6 @@ export default function ProjectCard({ data }: ProjectProps) {
             <Typography gutterBottom variant="h5" component="h2">
               {data.name}
             </Typography>
-            <Typography gutterBottom>
-              {getIndustrieById(data.industrie.toString())?.name}
-            </Typography>
             <Typography>
               {data.description}
             </Typography>
