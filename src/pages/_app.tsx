@@ -14,6 +14,8 @@ import createEmotionCache from "@/utils/createEmotionCache";
 import { CssBaseline, ThemeProvider } from "@mui/material";
 import theme from '@/styles/theme';
 import Navbar from "@/components/Navbar";
+import { LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 
 const chains = [
   mainnet,
@@ -34,10 +36,10 @@ const metadata = {
 
 const wagmiConfig = defaultWagmiConfig({ chains, projectId, metadata });
 
-createWeb3Modal({ 
-  wagmiConfig, 
-  projectId, 
-  chains, 
+createWeb3Modal({
+  wagmiConfig,
+  projectId,
+  chains,
   themeVariables: {
     '--w3m-font-family': theme.typography.fontFamily,
     '--w3m-accent': theme.palette.primary.main
@@ -62,14 +64,16 @@ export default function App(props: MyAppProps) {
     <>
       {ready ? (
         <CacheProvider value={emotionCache}>
-          <ThemeProvider theme={theme}>
-            {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
-            <CssBaseline />
-            <WagmiConfig config={wagmiConfig}>
-              <Navbar />
-              <Component {...pageProps} />
-            </WagmiConfig>
-          </ThemeProvider>
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <ThemeProvider theme={theme}>
+              {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
+              <CssBaseline />
+              <WagmiConfig config={wagmiConfig}>
+                <Navbar />
+                <Component {...pageProps} />
+              </WagmiConfig>
+            </ThemeProvider>
+          </LocalizationProvider>
         </CacheProvider>
       ) : null}
     </>
