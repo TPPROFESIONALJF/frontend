@@ -14,28 +14,17 @@ const nextConfig = {
 	  basePath: '/frontend',
 	  assetPrefix: '/frontend',
 	  trailingSlash: true,
-	  async headers() {
-		return [
-		  {
-			source: '/:path*',
-			headers: [
-			  {
-				key: 'x-hello',
-				value: 'there',
-			  },
-			],
-		  },
-		  {
-			source: '/hello',
-			headers: [
-			  {
-				key: 'x-hello',
-				value: 'world',
-			  },
-			],
-		  },
-		]
-	  },
+	  headers: () => [
+		{
+		  source: '/:path*',
+		  headers: [
+			{
+			  key: 'Cache-Control',
+			  value: 'no-store',
+			},
+		  ],
+		},
+	  ]
 };
 
 module.exports = nextConfig;
