@@ -17,7 +17,7 @@ export default function Navbar() {
           }} className={styles.header}>
             <Link href="/">
               <Image
-                src="/logo.png"
+                src="/frontend/logo.png"
                 alt="CryptoFundMe Logo"
                 width="0"
                 height="0"
