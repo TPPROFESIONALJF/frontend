@@ -11,6 +11,8 @@ const nextConfig = {
 		// !! WARN !!
 		ignoreBuildErrors: true,
 	  },
+	  basePath: '/frontend',
+	  assetPrefix: '/frontend'
 };
 
 module.exports = nextConfig;
