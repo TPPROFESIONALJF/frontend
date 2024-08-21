@@ -282,7 +282,7 @@ export default function Project() {
     }
   }
 
-  async function uploadDocuments(file: File): boolean {
+  async function uploadDocuments(file: File): Promise<boolean> {
     try {
       setIsUploadingDocuments(true);
       await handleUpload(file);

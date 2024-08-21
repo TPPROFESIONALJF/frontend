@@ -29,8 +29,8 @@ export function DocumentUploadStep({ step, ...other }: DocumentUploadStepProps) 
         <UploadDocumentsModal props={{
           open,
           handleClose,
-          onUploadClick(file) {
-            if (step.onDocumentsUpload(file)) {
+          async onUploadClick(file) {
+            if (await step.onDocumentsUpload(file)) {
               handleClose();
             }
           }

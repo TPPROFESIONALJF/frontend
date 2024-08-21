@@ -12,26 +12,29 @@ export function getDates(step: MilestoneStepData) {
     : `${step.startDate.format('DD/MM/YYYY HH:mm:ss')}`
 }
 
-export function buildMilestoneSteps(milestone: Milestone, stepNumber: number, onVoteCast: (proposalId: bigint, voteFor: number) => void, onDocumentsUpload: (file: File) => boolean): MilestoneStepData {
+export function buildMilestoneSteps(milestone: Milestone, stepNumber: number, onVoteCast: (proposalId: bigint, voteFor: number) => void, onDocumentsUpload: (file: File) => Promise<boolean>): MilestoneStepData {
   const startDate = milestone.startDate;
   const endDate = milestone.endDate;
   const diff = endDate?.diff(startDate, 'minute');
 //  const middleDate = endDate !== undefined ? startDate.add(diff!! / 2, "minute") : startDate;
-  const middleDate = endDate !== undefined ? startDate.add(1, "minute") : startDate; // For demo purposes we give more time to votations
+  const middleDate = endDate !== undefined ? startDate.add(2, "minute") : startDate; // For demo purposes we give more time to votations
   if (stepNumber == 0) {
     let documentMilestone = milestone as ReportMilestone;
     return new DocumentUploadStepData("Report documents upload", startDate, middleDate, "", milestone.isOwnerView, onDocumentsUpload, "", documentMilestone.documentName, documentMilestone.documentUrl);
   } else if (stepNumber == 1) {
-    return new VotingInProgressMilestoneStepData("Voting period", middleDate, endDate, "", milestone.isOwnerView, false, true, milestone.votingResults, onVoteCast, milestone.proposalId);
+    let votingMilestone = milestone as ReportMilestone;
+    return new VotingInProgressMilestoneStepData("Voting period", middleDate, endDate, "", milestone.isOwnerView, false, true, votingMilestone.votingResults, onVoteCast, votingMilestone.proposalId);
   } else if (stepNumber == 2) {
-    return new VotingResultsMilestoneStepData("Voting results", endDate!!, endDate!!, "", milestone.isOwnerView, milestone.votingResults);
+    let votingMilestone = milestone as ReportMilestone;
+    return new VotingResultsMilestoneStepData("Voting results", endDate!!, endDate!!, "", milestone.isOwnerView, votingMilestone.votingResults);
   } else if (stepNumber == 3) {
     let stepName = "";
     let caption = "";
-    if (milestone?.votingResults?.finalResult === undefined) {
+    let votingMilestone = milestone as ReportMilestone;
+    if (milestone?.endDate != undefined && milestone?.endDate > dayjs()) {
       stepName = "Funding release/project cancellation";
       caption = `${milestone.tokensToRelease.toString()} tokens to release`;
-    } else if (milestone.votingResults.finalResult) {
+    } else if (votingMilestone?.votingResults?.finalResult) {
       stepName = "Funding release";
       caption = `${milestone.tokensToRelease.toString()} tokens released`;
     } else {

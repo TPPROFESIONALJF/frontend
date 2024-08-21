@@ -43,7 +43,7 @@ export interface ReportMilestoneProps {
 }
 
 export class ReportMilestone extends Milestone {
-  onDocumentsUpload: (file: File) => boolean;
+  onDocumentsUpload: (file: File) => Promise<boolean>;
   votingResults: VotingResult | undefined;
   proposalId: bigint;
   documentName: string | undefined;
@@ -58,7 +58,7 @@ export class ReportMilestone extends Milestone {
     _isActive: boolean,
     _stage: number,
     _votingResults: VotingResult | undefined,
-    _onDocumentsUpload: (file: File) => boolean,
+    _onDocumentsUpload: (file: File) => Promise<boolean>,
     _proposalId: bigint,
     _documentName: string | undefined,
     _documentUrl: string | undefined

@@ -2,7 +2,7 @@ import { Dayjs } from "dayjs";
 import { MilestoneStepData } from "./MilestoneStepData"
 
 export class DocumentUploadStepData extends MilestoneStepData {
-  onDocumentsUpload: (file: File) => boolean;
+  onDocumentsUpload: (file: File) => Promise<boolean>;
   proposalStatus: String;
   documentName: String | undefined;
   documentUrl: string | undefined;
@@ -13,7 +13,7 @@ export class DocumentUploadStepData extends MilestoneStepData {
     _endDate: Dayjs | undefined,
     _caption: string,
     _isOwnerView: boolean,
-    _onDocumentsUpload: (file: File) => boolean,
+    _onDocumentsUpload: (file: File) => Promise<boolean>,
     _proposalStatus: String,
     _documentName: string | undefined,
     _documentUrl: string | undefined

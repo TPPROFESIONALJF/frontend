@@ -53,7 +53,7 @@ async function onVoteCast(proposalId: bigint, voteFor: number) {
       console.log(error.message);
       let errorMessage = "";
         if (error.message.includes("vote not currently active")){
-          errorMessage = "Voting period has finished";
+          errorMessage = "Voting is not active";
         }
         if (error.message.includes("unknown proposal id")){
           errorMessage = "Voting period has not started yet";
@@ -103,13 +103,13 @@ export function ReportMilestoneCard({ milestone }: ReportMilestoneProps) {
           <Stepper activeStep={activeStep} orientation="vertical">
             {steps.map((step, index) => {
               if (step instanceof VotingInProgressMilestoneStepData) {
-                return <VotingInProgressStep step={step} />
+                return <VotingInProgressStep step={step} key={index} />
               } else if (step instanceof VotingResultsMilestoneStepData) {
-                return <VotingResultsStep step={step} />
+                return <VotingResultsStep step={step} key={index} />
               } else if (step instanceof DocumentUploadStepData) {
-                return <DocumentUploadStep step={step} />
+                return <DocumentUploadStep step={step} key={index} />
               } else if (step instanceof EndMilestoneStepData) {
-                return <EndMilestoneStep step={step} />
+                return <EndMilestoneStep step={step} key={index} />
               }
             })}
           </Stepper>
