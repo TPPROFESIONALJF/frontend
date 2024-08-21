@@ -13,18 +13,7 @@ const nextConfig = {
 	  },
 	  basePath: '/frontend',
 	  assetPrefix: '/frontend',
-	  trailingSlash: true,
-	  headers: () => [
-		{
-		  source: '/:path*',
-		  headers: [
-			{
-			  key: 'Cache-Control',
-			  value: 'no-store',
-			},
-		  ],
-		},
-	  ]
+	  trailingSlash: true
 };
 
 module.exports = nextConfig;
