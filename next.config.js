@@ -11,8 +11,6 @@ const nextConfig = {
 		// !! WARN !!
 		ignoreBuildErrors: true,
 	  },
-	  basePath: '/frontend',
-	  assetPrefix: '/frontend',
 	  trailingSlash: true
 };
 
