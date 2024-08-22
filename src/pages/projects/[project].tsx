@@ -500,7 +500,7 @@ export default function Project() {
                             alignItems="center"
                             justifyContent="center">
                             <Image
-                              src="/frontend/images/evaluation.png"
+                              src="/images/evaluation.png"
                               alt="Evaluation Logo"
                               width="0"
                               height="0"
@@ -517,7 +517,7 @@ export default function Project() {
                             alignItems="center"
                             justifyContent="center">
                             <Image
-                              src="/frontend/images/investors.png"
+                              src="/images/investors.png"
                               alt="Users Logo"
                               width="0"
                               height="0"
@@ -534,7 +534,7 @@ export default function Project() {
                             alignItems="center"
                             justifyContent="center">
                             <Image
-                              src="/frontend/images/token.png"
+                              src="/images/token.png"
                               alt="Token logo"
                               width="0"
                               height="0"
